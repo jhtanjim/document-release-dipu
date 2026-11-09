@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+}
+
+enum ContainerSize {
+  FT20
+  FT40
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(OPERATOR)
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+}
+
+model Importer {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  jobs      Job[]
+}
+
+model ShippingAgent {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  jobs      Job[]
+}
+
+/// One job = one master file of containers whose guarantee (security money) is tracked until release.
+model Job {
+  id                 Int           @id @default(autoincrement())
+  jobNo              String        @unique
+  cNumber            String?       @unique
+  importerId         Int
+  importer           Importer      @relation(fields: [importerId], references: [id])
+  agentId            Int
+  agent              ShippingAgent @relation(fields: [agentId], references: [id])
+  containerCount     Int
+  containerSize      ContainerSize @default(FT20)
+  /// Taka per container, whole numbers only
+  ratePerContainer   Int
+  depotReceivedAt    DateTime?     @db.Date
+  surveyReceivedAt   DateTime?     @db.Date
+  submittedToAgentAt DateTime?     @db.Date
+  agentBillAt        DateTime?     @db.Date
+  /// Taka, from the shipping agent's bill
+  actualCost         Int?
+  releasedAt         DateTime?     @db.Date
+  note               String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  auditLogs          AuditLog[]
+
+  @@index([importerId])
+  @@index([agentId])
+}
+
+/// Single row (id = 1): default rate and the day limits behind the red marks.
+model Setting {
+  id          Int      @id @default(1)
+  defaultRate Int      @default(10000)
+  surveyDays  Int      @default(7)
+  billDays    Int      @default(7)
+  releaseDays Int      @default(30)
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  jobId     Int?
+  job       Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  jobNo     String
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  changes   Json?
+  createdAt DateTime @default(now())
+
+  @@index([jobId])
+}
