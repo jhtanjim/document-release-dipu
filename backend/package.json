@@ -21,7 +21,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "admin:reset": "node --env-file=.env node_modules/tsx/dist/cli.mjs prisma/reset-admin.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

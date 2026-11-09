@@ -56,22 +56,26 @@ async function main() {
 
   const email = process.env.ADMIN_EMAIL?.toLowerCase();
   const password = process.env.ADMIN_PASSWORD;
-  if (email && password) {
-    const exists = await prisma.user.findUnique({ where: { email } });
-    if (!exists) {
-      await prisma.user.create({
-        data: {
-          name: process.env.ADMIN_NAME || 'Admin',
-          email,
-          role: 'ADMIN',
-          passwordHash: await bcrypt.hash(password, 10),
-        },
-      });
-      console.log(`Admin created: ${email}`);
-    }
+  // The one super admin, who creates every other account. Skipped once a super admin exists;
+  // use `npm run admin:reset` to change its email or password later.
+  const hasSuper = await prisma.user.count({ where: { role: 'SUPER_ADMIN' } });
+  if (hasSuper) {
+    console.log('Super admin already exists.');
+  } else if (email && password) {
+    await prisma.user.upsert({
+      where: { email },
+      update: { role: 'SUPER_ADMIN', active: true },
+      create: {
+        name: process.env.ADMIN_NAME || 'Super Admin',
+        email,
+        role: 'SUPER_ADMIN',
+        passwordHash: await bcrypt.hash(password, 10),
+      },
+    });
+    console.log(`Super admin created: ${email}`);
   } else {
     console.log(
-      'ADMIN_EMAIL / ADMIN_PASSWORD not set — no admin user created.',
+      'ADMIN_EMAIL / ADMIN_PASSWORD not set — no super admin created.',
     );
   }
 

@@ -1,4 +1,13 @@
-export type Role = "ADMIN" | "OPERATOR";
+export type Role = "SUPER_ADMIN" | "ADMIN" | "OPERATOR";
+
+export const ROLE_LABEL: Record<Role, string> = {
+  SUPER_ADMIN: "সুপার অ্যাডমিন",
+  ADMIN: "অ্যাডমিন",
+  OPERATOR: "অপারেটর",
+};
+
+/** Admin rights: rates, rules, deleting jobs. The super admin has them too. */
+export const isAdmin = (role?: Role) => role === "ADMIN" || role === "SUPER_ADMIN";
 export type FlagType = "SURVEY_LATE" | "BILL_LATE" | "OVERDUE";
 export type Stage = "NEW" | "DEPOT" | "SURVEY" | "WITH_AGENT" | "BILLED" | "RELEASED";
 

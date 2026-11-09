@@ -5,7 +5,7 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { api, useApi } from "@/lib/api";
-import type { JobDetail } from "@/lib/types";
+import { isAdmin, type JobDetail } from "@/lib/types";
 import { FIELD_LABEL, signed, tk } from "@/lib/format";
 import { Card, ConfirmButton, ErrorBox, Loading, PageHeader } from "@/components/ui";
 import { JobForm } from "@/components/job-form";
@@ -54,7 +54,7 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
           </span>
         }
         subtitle={`${job.importer.name} · ${job.agent.name}${job.cNumber ? ` · C নং ${job.cNumber}` : ""}`}
-        actions={me?.role === "ADMIN" ? <ConfirmButton onConfirm={remove} confirmText="ডিলিট নিশ্চিত? আবার চাপুন">জব ডিলিট</ConfirmButton> : undefined}
+        actions={isAdmin(me?.role) ? <ConfirmButton onConfirm={remove} confirmText="ডিলিট নিশ্চিত? আবার চাপুন">জব ডিলিট</ConfirmButton> : undefined}
       />
 
       <Card className="grid gap-3 sm:grid-cols-3">

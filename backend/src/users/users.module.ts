@@ -11,12 +11,11 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import {
   IsBoolean,
   IsEmail,
-  IsEnum,
+  IsIn,
   IsOptional,
   IsString,
   MaxLength,
@@ -26,6 +25,10 @@ import { type AuthUser, CurrentUser, Roles } from '../auth/decorators';
 import { PrismaService } from '../prisma/prisma.module';
 
 const PASSWORD_MSG = 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।';
+/** There is exactly one super admin (set from .env); accounts made here are admins or operators. */
+const ASSIGNABLE = ['ADMIN', 'OPERATOR'] as const;
+type Assignable = (typeof ASSIGNABLE)[number];
+const ROLE_MSG = 'রোল হবে অ্যাডমিন বা অপারেটর।';
 
 class CreateUserDto {
   @IsString()
@@ -37,13 +40,13 @@ class CreateUserDto {
   @IsString()
   @MinLength(8, { message: PASSWORD_MSG })
   password!: string;
-  @IsEnum(Role)
-  role!: Role;
+  @IsIn(ASSIGNABLE, { message: ROLE_MSG })
+  role!: Assignable;
 }
 
 class UpdateUserDto {
   @IsOptional() @IsString() @MinLength(1) @MaxLength(100) name?: string;
-  @IsOptional() @IsEnum(Role) role?: Role;
+  @IsOptional() @IsIn(ASSIGNABLE, { message: ROLE_MSG }) role?: Assignable;
   @IsOptional() @IsBoolean() active?: boolean;
   @IsOptional()
   @IsString()
@@ -53,7 +56,7 @@ class UpdateUserDto {
 
 const select = { id: true, name: true, email: true, role: true, active: true };
 
-@Roles('ADMIN')
+@Roles('SUPER_ADMIN')
 @Controller('users')
 export class UsersController {
   constructor(private prisma: PrismaService) {}
@@ -88,13 +91,14 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @CurrentUser() me: AuthUser,
   ) {
-    if (!(await this.prisma.user.findUnique({ where: { id } })))
-      throw new NotFoundException('ইউজার পাওয়া যায়নি।');
-    if (
-      id === me.id &&
-      (dto.active === false || (dto.role && dto.role !== 'ADMIN'))
-    )
-      throw new BadRequestException('নিজেকে বন্ধ বা অপারেটর করা যাবে না।');
+    const target = await this.prisma.user.findUnique({ where: { id } });
+    if (!target) throw new NotFoundException('ইউজার পাওয়া যায়নি।');
+    if (target.role === 'SUPER_ADMIN' && (dto.active === false || dto.role))
+      throw new BadRequestException(
+        'সুপার অ্যাডমিনকে বন্ধ করা বা রোল বদলানো যাবে না। শুধু নাম আর পাসওয়ার্ড বদলানো যায়।',
+      );
+    if (id === me.id && dto.active === false)
+      throw new BadRequestException('নিজেকে বন্ধ করা যাবে না।');
     return this.prisma.user.update({
       where: { id },
       data: {

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { BarChart3, ClipboardList, FileSpreadsheet, LogOut, Plus, Settings, Ship } from "lucide-react";
 import { api } from "@/lib/api";
-import type { Me } from "@/lib/types";
+import { ROLE_LABEL, type Me } from "@/lib/types";
 import { Loading } from "./ui";
 
 const UserCtx = createContext<Me | null>(null);
@@ -93,7 +93,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="absolute inset-x-0 bottom-0 hidden border-t border-line p-4 lg:block">
               <p className="truncate font-semibold">{me.name}</p>
               <p className="truncate text-[13px] text-muted">
-                {me.role === "ADMIN" ? "অ্যাডমিন" : "অপারেটর"} · {me.email}
+                {ROLE_LABEL[me.role]} · {me.email}
               </p>
               <button onClick={logout} className="mt-2 flex items-center gap-2 text-sm font-semibold text-muted hover:text-ink">
                 <LogOut className="size-4" aria-hidden /> লগআউট

@@ -7,7 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// SUPER_ADMIN: exactly one, from .env; creates and manages every other account.
+/// ADMIN: everything except accounts. OPERATOR: enters and updates jobs.
 enum Role {
+  SUPER_ADMIN
   ADMIN
   OPERATOR
 }

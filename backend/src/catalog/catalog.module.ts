@@ -106,7 +106,7 @@ abstract class NamesController {
     @Body() dto: UpdateNameDto,
     @CurrentUser() me: AuthUser,
   ) {
-    if (dto.active !== undefined && me.role !== 'ADMIN')
+    if (dto.active !== undefined && me.role === 'OPERATOR')
       throw new ForbiddenException(
         'লুকানো বা চালু করা শুধু অ্যাডমিন করতে পারেন।',
       );

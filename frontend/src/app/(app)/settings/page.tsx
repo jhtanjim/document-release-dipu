@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { api, useApi } from "@/lib/api";
-import type { Importer, Role, Settings, UserRow } from "@/lib/types";
+import { isAdmin, ROLE_LABEL, type Importer, type Settings, type UserRow } from "@/lib/types";
+
+type Assignable = "ADMIN" | "OPERATOR";
 import { Badge, Button, Card, ErrorBox, Field, Loading, PageHeader, Segmented, inputCls } from "@/components/ui";
 import { useMe, useToast } from "@/components/shell";
 
@@ -142,7 +144,7 @@ function NamesTab({ kind, admin }: { kind: "importers" | "agents"; admin: boolea
 
 function UsersTab() {
   const { data, error, reload } = useApi<UserRow[]>("/users");
-  const [f, setF] = useState({ name: "", email: "", password: "", role: "OPERATOR" as Role });
+  const [f, setF] = useState({ name: "", email: "", password: "", role: "OPERATOR" as Assignable });
   const [err, setErr] = useState<string | null>(null);
   const [resetFor, setResetFor] = useState<{ id: number; password: string } | null>(null);
   const toast = useToast();
@@ -164,6 +166,10 @@ function UsersTab() {
 
   return (
     <Card className="flex flex-col gap-4">
+      <p className="text-sm text-muted">
+        এখান থেকে সবার অ্যাকাউন্ট খুলুন, তারপর ইমেইল আর পাসওয়ার্ড তাঁকে দিয়ে দিন। কেউ নিজে থেকে রেজিস্টার করতে পারেন না। অ্যাডমিন রেট, নিয়ম আর জব ডিলিট
+        করতে পারেন; অপারেটর শুধু জব এন্ট্রি আর আপডেট।
+      </p>
       <form
         className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
         onSubmit={(e) => {
@@ -174,9 +180,9 @@ function UsersTab() {
         <input aria-label="নাম" placeholder="নাম" required className={inputCls} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
         <input aria-label="ইমেইল" placeholder="ইমেইল" type="email" required className={inputCls} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
         <input aria-label="পাসওয়ার্ড" placeholder="পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর)" type="password" minLength={8} required autoComplete="new-password" className={inputCls} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
-        <select aria-label="রোল" className={inputCls} value={f.role} onChange={(e) => setF({ ...f, role: e.target.value as Role })}>
+        <select aria-label="রোল" className={inputCls} value={f.role} onChange={(e) => setF({ ...f, role: e.target.value as Assignable })}>
           <option value="OPERATOR">অপারেটর: এন্ট্রি ও আপডেট</option>
-          <option value="ADMIN">অ্যাডমিন: সব কিছু</option>
+          <option value="ADMIN">অ্যাডমিন: রেট, নিয়ম, ডিলিট</option>
         </select>
         <Button type="submit" variant="primary">
           ইউজার যোগ করুন
@@ -190,7 +196,7 @@ function UsersTab() {
               <p className={`font-semibold ${u.active ? "" : "text-muted line-through"}`}>{u.name}</p>
               <p className="text-[13px] text-muted">{u.email}</p>
             </div>
-            <Badge tone={u.role === "ADMIN" ? "info" : "neutral"}>{u.role === "ADMIN" ? "অ্যাডমিন" : "অপারেটর"}</Badge>
+            <Badge tone={u.role === "SUPER_ADMIN" ? "good" : u.role === "ADMIN" ? "info" : "neutral"}>{ROLE_LABEL[u.role]}</Badge>
             {!u.active && <Badge tone="crit">বন্ধ</Badge>}
             <span className="ml-auto flex flex-wrap gap-2">
               {resetFor?.id === u.id ? (
@@ -208,7 +214,7 @@ function UsersTab() {
                   পাসওয়ার্ড বদলান
                 </Button>
               )}
-              {u.id !== me?.id && (
+              {u.id !== me?.id && u.role !== "SUPER_ADMIN" && (
                 <Button size="sm" variant="ghost" onClick={() => run(() => api(`/users/${u.id}`, { method: "PATCH", json: { active: !u.active } }), u.active ? "ইউজার বন্ধ করা হয়েছে" : "ইউজার চালু হয়েছে")}>
                   {u.active ? "বন্ধ করুন" : "চালু করুন"}
                 </Button>
@@ -223,13 +229,14 @@ function UsersTab() {
 
 export default function SettingsPage() {
   const me = useMe();
-  const admin = me?.role === "ADMIN";
+  const admin = isAdmin(me?.role);
+  const superAdmin = me?.role === "SUPER_ADMIN";
   const [tab, setTab] = useState<Tab>("rules");
   const tabs: { value: Tab; label: string }[] = [
     { value: "rules", label: "নিয়ম ও রেট" },
     { value: "importers", label: "ইম্পোর্টার" },
     { value: "agents", label: "শিপিং এজেন্ট" },
-    ...(admin ? [{ value: "users" as Tab, label: "ইউজার" }] : []),
+    ...(superAdmin ? [{ value: "users" as Tab, label: "ইউজার অ্যাকাউন্ট" }] : []),
   ];
   return (
     <div className="flex flex-col gap-4">
@@ -238,7 +245,7 @@ export default function SettingsPage() {
       {tab === "rules" && <RulesTab admin={admin} />}
       {tab === "importers" && <NamesTab kind="importers" admin={admin} />}
       {tab === "agents" && <NamesTab kind="agents" admin={admin} />}
-      {tab === "users" && admin && <UsersTab />}
+      {tab === "users" && superAdmin && <UsersTab />}
     </div>
   );
 }

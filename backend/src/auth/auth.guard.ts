@@ -59,8 +59,13 @@ export class AuthGuard implements CanActivate {
       ROLES,
       targets,
     );
-    if (roles && !roles.includes(user.role))
-      throw new ForbiddenException('এই কাজটা শুধু অ্যাডমিন করতে পারেন।');
+    // The super admin can do everything an admin can; @Roles('SUPER_ADMIN') routes are theirs alone.
+    if (roles && user.role !== 'SUPER_ADMIN' && !roles.includes(user.role))
+      throw new ForbiddenException(
+        roles.includes('ADMIN')
+          ? 'এই কাজটা শুধু অ্যাডমিন করতে পারেন।'
+          : 'এই কাজটা শুধু সুপার অ্যাডমিন করতে পারেন।',
+      );
     return true;
   }
 }
