@@ -22,7 +22,7 @@
   --good:#63c98a; --good-bg:#16301f; --warn:#f0a35c; --warn-bg:#36230f; --crit:#ff7378; --crit-bg:#3a1a1c; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header{background:var(--surface);border-bottom:1px solid var(--line)}
 .top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:14px}
 .brand{display:flex;flex-direction:column;margin-right:auto}
@@ -33,7 +33,7 @@ header{background:var(--surface);border-bottom:1px solid var(--line)}
 .testdate input{font:inherit;font-weight:500;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
 button,.btn{font:inherit;font-weight:600;font-size:14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px;cursor:pointer}
 button:hover{border-color:var(--accent)}
-button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,td:focus-visible,tr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .ghost{background:transparent}
 .danger{color:var(--crit);border-color:var(--crit);background:transparent}
@@ -76,20 +76,29 @@ table{border-collapse:collapse;width:100%;font-size:14px}
 th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
 th{font-size:12.5px;color:var(--muted);font-weight:600;background:var(--sunk);white-space:nowrap}
 td.r,th.r{text-align:right}
+td.c,th.c{text-align:center}
 tbody tr.click{cursor:pointer}
 tbody tr.click:hover{background:var(--accent-soft)}
 tr.flagged td:first-child{box-shadow:inset 3px 0 0 var(--crit)}
 tr.grp td{background:var(--sunk);font-weight:700}
 tr.sub td{font-weight:600;color:var(--muted);font-size:13px}
+.mx td.cell{cursor:pointer;font-family:var(--f-num);text-align:center}
+.mx td.cell:hover{background:var(--accent-soft)}
+.mx td.cell.on{background:var(--accent);color:var(--accent-ink)}
+.mx td.zero{color:var(--line);text-align:center}
+.mx tfoot td,.mx td.tot{font-weight:700;font-family:var(--f-num);text-align:center;background:var(--sunk)}
+.mx th.ag{text-align:center;font-size:12px}
 .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seg .lbl{font-size:12.5px;font-weight:700;color:var(--muted);min-width:76px}
 .seg button{font-weight:500;border-radius:999px;padding:5px 12px}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.seg button small{font-family:var(--f-num);opacity:.7;margin-left:4px}
 input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
 .head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
 .muted{color:var(--muted)}
 .empty{padding:24px;text-align:center;color:var(--muted)}
-dialog{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--surface);color:var(--ink);width:min(680px,calc(100vw - 24px));max-height:calc(100vh - 24px)}
+dialog{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--surface);color:var(--ink);width:min(700px,calc(100vw - 24px));max-height:calc(100vh - 24px)}
 dialog::backdrop{background:rgba(10,20,25,.45)}
 .dlg{display:flex;flex-direction:column;gap:14px;padding:18px}
 .form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -100,42 +109,45 @@ dialog::backdrop{background:rgba(10,20,25,.45)}
 .err{color:var(--crit);font-size:13.5px;font-weight:600;min-height:1em}
 .actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .actions .left{margin-right:auto}
-@media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.money,.two{grid-template-columns:minmax(0,1fr)}.form{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.money,.two{grid-template-columns:minmax(0,1fr)}.form{grid-template-columns:minmax(0,1fr)}.seg .lbl{min-width:100%}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
 <header>
   <div class="wrap top">
-    <div class="brand"><b>গারান্টি রিলিজ ট্র্যাকার</b><small>মাস্টার ফাইল · সার্ভে · এজেন্টের হিসাব · রিলিজ</small></div>
+    <div class="brand"><b>গারান্টি রিলিজ ট্র্যাকার</b><small>জব · সার্ভে · শিপিং এজেন্টের হিসাব · রিলিজ</small></div>
     <div class="tools">
       <label class="testdate" for="t-date">আজকের তারিখ (টেস্ট)
         <input type="date" id="t-date">
       </label>
       <button class="small ghost" id="t-reset" type="button">আসল আজ</button>
       <button id="open-settings" type="button" class="ghost">সেটিংস</button>
-      <button id="open-new" type="button" class="primary">+ নতুন ফাইল</button>
+      <button id="open-new" type="button" class="primary">+ নতুন জব</button>
     </div>
   </div>
   <div class="wrap">
     <nav class="tabs" aria-label="পেজ">
       <a href="#dashboard" data-tab="dashboard">ড্যাশবোর্ড</a>
-      <a href="#files" data-tab="files">সব ফাইল</a>
+      <a href="#files" data-tab="files">সব জব</a>
       <a href="#statement" data-tab="statement">স্টেটমেন্ট</a>
     </nav>
   </div>
 </header>
 
-<div class="wrap"><p class="note">টেস্ট ভার্সন: নমুনা ফাইল দেওয়া আছে। উপরের তারিখ বদলালে দেখবেন কোন ফাইল কবে লাল হয়। আপনার এন্ট্রি শুধু এই ব্রাউজারে থাকবে।</p></div>
+<div class="wrap"><p class="note">টেস্ট ভার্সন: নমুনা জব দেওয়া আছে। উপরের তারিখ বদলালে দেখবেন কোন জব কবে লাল হয়। আপনার এন্ট্রি শুধু এই ব্রাউজারে থাকবে।</p></div>
 <main class="wrap" id="view"></main>
 
 <dialog id="dlg-file" aria-labelledby="dlg-title">
   <form class="dlg" id="file-form" novalidate>
-    <h2 id="dlg-title">নতুন ফাইল</h2>
+    <h2 id="dlg-title">নতুন জব</h2>
     <div class="form">
-      <div class="step">ধাপ ১ · ফাইল ও ইম্পোর্টার</div>
-      <label for="e-no">মাস্টার ফাইল নম্বর<input id="e-no" required placeholder="MF-2409"></label>
+      <div class="step">ধাপ ১ · জব, ইম্পোর্টার ও এজেন্ট</div>
+      <label for="e-no">জব নম্বর<input id="e-no" required placeholder="JOB-2413"></label>
+      <label for="e-cno">C নম্বর<input id="e-cno" inputmode="numeric" placeholder="254777"></label>
       <label for="e-imp">ইম্পোর্টার<select id="e-imp"></select></label>
-      <label for="e-imp-new" class="full" id="imp-new-wrap" hidden>নতুন ইম্পোর্টারের নাম<input id="e-imp-new" placeholder="যেমন: রহমান স্টিল"></label>
+      <label for="e-agent">শিপিং এজেন্ট / লাইন<select id="e-agent"></select></label>
+      <label for="e-imp-new" class="full" id="imp-new-wrap" hidden>নতুন ইম্পোর্টারের নাম (ইংরেজিতে)<input id="e-imp-new" placeholder="e.g. Rahman Steel"></label>
+      <label for="e-agent-new" class="full" id="agent-new-wrap" hidden>অন্য এজেন্টের নাম<input id="e-agent-new" placeholder="e.g. Evergreen Shipping"></label>
       <label for="e-qty">কন্টেইনার সংখ্যা<input id="e-qty" type="number" min="1" step="1" value="1"></label>
       <label for="e-size">কন্টেইনার সাইজ<select id="e-size"><option value="20">২০ ফুট</option><option value="40">৪০ ফুট</option></select></label>
       <label for="e-rate">প্রতি কন্টেইনার সিকিউরিটি (টাকা)<input id="e-rate" type="number" min="0" step="500"></label>
@@ -176,7 +188,8 @@ dialog::backdrop{background:rgba(10,20,25,.45)}
 </dialog>
 
 <script>
-const KEY = 'guarantee-release-demo-v1';
+const KEY = 'guarantee-release-demo-v2';
+const AGENTS = ['APL Bangladesh Pvt Ltd', 'MSC Mediterranean Shipping', 'COSCO', 'Reliance Shipping', 'Maersk Line Bangladesh', 'Ocean Network Express (ONE)', 'PIL Bangladesh Ltd', 'Hapag-Lloyd', 'SITC Bangladesh'];
 const pad = n => String(n).padStart(2, '0');
 const realToday = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
@@ -191,20 +204,24 @@ let today = realToday();
 
 function seed(T) {
   const d = n => addDays(T, -n); let i = 0;
-  const mk = (no, importer, qty, size, rate, o) => ({ id: 's' + (++i), no, importer, qty, size, rate, depot: null, survey: null, submit: null, hisab: null, cost: null, release: null, ...o });
+  const mk = (no, cno, importer, agent, qty, size, rate, o) => ({ id: 's' + (++i), no, cno, importer, agent, qty, size, rate, depot: null, survey: null, submit: null, hisab: null, cost: null, release: null, ...o });
   return {
     settings: { rate: 10000, surveyDays: 7, hisabDays: 7, releaseDays: 30 },
-    importers: ['আনোয়ার ইস্পাত', 'মুন্তাহা স্টিল', 'সালাম', 'আনোয়ার গ্যালভানাইজিং'],
+    importers: ['Anwar Ispat', 'Montaha Steel', 'Salam', 'Anwar Galvanizing'],
+    agents: [...AGENTS],
     files: [
-      mk('MF-2401', 'আনোয়ার ইস্পাত', 10, '20', 10000, { depot: d(13) }),
-      mk('MF-2402', 'মুন্তাহা স্টিল', 4, '40', 10000, { depot: d(18), survey: d(14), submit: d(13) }),
-      mk('MF-2403', 'আনোয়ার ইস্পাত', 10, '20', 10000, { depot: d(40), survey: d(36), submit: d(35), hisab: d(30), cost: 85000 }),
-      mk('MF-2404', 'সালাম', 3, '20', 8000, { depot: d(28), survey: d(24), submit: d(23), hisab: d(18), cost: 31500, release: d(8) }),
-      mk('MF-2405', 'আনোয়ার গ্যালভানাইজিং', 6, '20', 10000, { depot: d(5) }),
-      mk('MF-2406', 'মুন্তাহা স্টিল', 2, '40', 10000, { depot: d(20), survey: d(16), submit: d(15), hisab: d(10), cost: 14000 }),
-      mk('MF-2407', 'সালাম', 5, '20', 5000, { depot: d(12), survey: d(9), submit: d(8) }),
-      mk('MF-2408', 'আনোয়ার গ্যালভানাইজিং', 8, '20', 10000, { depot: d(30), survey: d(26), submit: d(25), hisab: d(20), cost: 96500 }),
-      mk('MF-2409', 'আনোয়ার ইস্পাত', 4, '20', 10000, { depot: d(60), survey: d(55), submit: d(54), hisab: d(47), cost: 31000, release: d(30) }),
+      mk('JOB-2401', '254777', 'Anwar Ispat', 'APL Bangladesh Pvt Ltd', 10, '20', 10000, { depot: d(13) }),
+      mk('JOB-2402', '254812', 'Montaha Steel', 'APL Bangladesh Pvt Ltd', 4, '40', 10000, { depot: d(18), survey: d(14), submit: d(13) }),
+      mk('JOB-2403', '253990', 'Anwar Ispat', 'COSCO', 10, '20', 10000, { depot: d(40), survey: d(36), submit: d(35), hisab: d(30), cost: 85000 }),
+      mk('JOB-2404', '254105', 'Salam', 'PIL Bangladesh Ltd', 3, '20', 8000, { depot: d(28), survey: d(24), submit: d(23), hisab: d(18), cost: 31500, release: d(8) }),
+      mk('JOB-2405', '254901', 'Anwar Galvanizing', 'Maersk Line Bangladesh', 6, '20', 10000, { depot: d(5) }),
+      mk('JOB-2406', '254433', 'Montaha Steel', 'MSC Mediterranean Shipping', 2, '40', 10000, { depot: d(20), survey: d(16), submit: d(15), hisab: d(10), cost: 14000 }),
+      mk('JOB-2407', '254620', 'Salam', 'APL Bangladesh Pvt Ltd', 5, '20', 5000, { depot: d(12), survey: d(9), submit: d(8) }),
+      mk('JOB-2408', '254210', 'Anwar Galvanizing', 'COSCO', 8, '20', 10000, { depot: d(30), survey: d(26), submit: d(25), hisab: d(20), cost: 96500 }),
+      mk('JOB-2409', '252876', 'Anwar Ispat', 'APL Bangladesh Pvt Ltd', 4, '20', 10000, { depot: d(60), survey: d(55), submit: d(54), hisab: d(47), cost: 31000, release: d(30) }),
+      mk('JOB-2410', '254350', 'Anwar Ispat', 'PIL Bangladesh Ltd', 6, '20', 10000, { depot: d(22), survey: d(18), submit: d(17), hisab: d(12), cost: 52000 }),
+      mk('JOB-2411', '254702', 'Montaha Steel', 'APL Bangladesh Pvt Ltd', 3, '40', 10000, { depot: d(9), survey: d(6) }),
+      mk('JOB-2412', '254555', 'Anwar Ispat', 'APL Bangladesh Pvt Ltd', 5, '20', 10000, { depot: d(16), survey: d(12), submit: d(11), hisab: d(6), cost: 47500 }),
     ]
   };
 }
@@ -212,6 +229,7 @@ function seed(T) {
 let state;
 try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) { state = null; }
 if (!state || !Array.isArray(state.files)) state = seed(today);
+if (!Array.isArray(state.agents)) state.agents = [...AGENTS];
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { } };
 
 function calc(f) {
@@ -229,9 +247,11 @@ const rows = () => state.files.map(f => ({ f, c: calc(f) }));
 const balCell = c => c.bal == null ? '<span class="pending">Pending · হিসাব আসেনি</span>' : `<span class="num ${c.bal > 0 ? 'plus' : c.bal < 0 ? 'minus' : ''}">${signed(c.bal)}</span>`;
 const statusCell = (f, c) => c.flags.length ? `<div class="chips">${c.flags.map(x => `<span class="chip crit">${x.label}</span>`).join('')}</div>` : `<span class="chip ${f.release ? 'good' : 'info'}">${c.stage}${f.release ? ' ' + fd(f.release) : ''}</span>`;
 const importersAll = () => [...new Set([...state.importers, ...state.files.map(f => f.importer)])];
+const agentsAll = () => [...new Set([...state.agents, ...state.files.map(f => f.agent).filter(Boolean)])];
+const agentsUsed = () => agentsAll().filter(a => state.files.some(f => f.agent === a));
 
 /* ---------- views ---------- */
-let fImp = 'all', fStatus = 'all', fSearch = '', stImp = 'all', dashReleased = false;
+let fImp = 'all', fAgent = 'all', fStatus = 'all', fSearch = '', stImp = 'all', stAgent = 'all', dashReleased = false;
 
 function viewDashboard() {
   const R = rows();
@@ -243,17 +263,17 @@ function viewDashboard() {
   const pSum = plus.reduce((a, r) => a + r.c.bal, 0), mSum = minus.reduce((a, r) => a + r.c.bal, 0);
   const att = R.filter(r => r.c.flags.length).sort((a, b) => Math.max(...b.c.flags.map(x => x.n)) - Math.max(...a.c.flags.map(x => x.n)));
   const tile = (k, n, l, h) => `<button type="button" class="tile ${n ? 'alert' : ''}" data-go="${k}"><span class="n">${n}</span><span class="l">${l}</span><span class="h">${h}</span></button>`;
-  const glist = (g, cls) => g.length ? `<ul class="glist">${g.map(([imp, v]) => `<li><span class="who">${esc(imp)}<small>${v.n}টা ফাইল</small></span><span class="num ${cls}">${signed(v.sum)}</span></li>`).join('')}</ul>` : '<p class="muted">কিছু নেই</p>';
+  const glist = (g, cls) => g.length ? `<ul class="glist">${g.map(([imp, v]) => `<li><span class="who">${esc(imp)}<small>${v.n}টা জব</small></span><span class="num ${cls}">${signed(v.sum)}</span></li>`).join('')}</ul>` : '<p class="muted">কিছু নেই</p>';
   return `
   <section class="grid tiles" aria-label="সতর্কতা">
     ${tile('survey', has('survey'), 'সার্ভে লেট', `ডিপোর ${state.settings.surveyDays} দিনের বেশি পরেও সার্ভে নেই`)}
     ${tile('hisab', has('hisab'), 'হিসাব লেট', `সার্ভের ${state.settings.hisabDays} দিন পরেও হিসাব নেই`)}
     ${tile('overdue', has('overdue'), 'ওভারডিউ', `জমার ${state.settings.releaseDays} দিনেও রিলিজ হয়নি`)}
-    <button type="button" class="tile" data-go="open"><span class="n">${open}</span><span class="l">চলমান ফাইল</span><span class="h">মোট ${state.files.length}টার মধ্যে রিলিজ বাকি</span></button>
+    <button type="button" class="tile" data-go="open"><span class="n">${open}</span><span class="l">চলমান জব</span><span class="h">মোট ${state.files.length}টার মধ্যে রিলিজ বাকি</span></button>
   </section>
   <section class="panel">
     <div class="head"><h2>প্লাস / মাইনাস হিসাব</h2>
-      <label class="muted" for="d-rel" style="font-size:13px"><input type="checkbox" id="d-rel" ${dashReleased ? 'checked' : ''}> রিলিজ হওয়া ফাইলও ধরুন</label></div>
+      <label class="muted" for="d-rel" style="font-size:13px"><input type="checkbox" id="d-rel" ${dashReleased ? 'checked' : ''}> রিলিজ হওয়া জবও ধরুন</label></div>
     <div class="grid money" style="margin-top:12px">
       <div class="m"><span class="k">মোট প্লাস (ফেরত পাবো)</span><span class="v plus">${signed(pSum)}</span></div>
       <div class="m"><span class="k">মোট মাইনাস (বাড়তি খরচ)</span><span class="v minus">${signed(mSum)}</span></div>
@@ -265,15 +285,15 @@ function viewDashboard() {
     <div class="panel"><h3 class="minus">মাইনাস · ইম্পোর্টার অনুযায়ী</h3>${glist(group(minus), 'minus')}</div>
   </section>
   <section>
-    <div class="head" style="margin-bottom:8px"><h2>এখনই দেখতে হবে</h2><span class="muted">${att.length}টা ফাইল লাল</span></div>
-    ${att.length ? fileTable(att) : '<div class="panel empty">কোনো ফাইল লাল নেই।</div>'}
+    <div class="head" style="margin-bottom:8px"><h2>এখনই দেখতে হবে</h2><span class="muted">${att.length}টা জব লাল</span></div>
+    ${att.length ? fileTable(att) : '<div class="panel empty">কোনো জব লাল নেই।</div>'}
   </section>`;
 }
 
 function fileTable(list) {
-  return `<div class="tbl"><table><thead><tr><th>ফাইল</th><th>ইম্পোর্টার</th><th>কন্টেইনার</th><th class="r">সিকিউরিটি</th><th>ডিপো</th><th>সার্ভে</th><th>এজেন্টে জমা</th><th>হিসাব</th><th class="r">ব্যালেন্স</th><th>অবস্থা</th></tr></thead><tbody>
+  return `<div class="tbl"><table><thead><tr><th>জব নং</th><th>C নং</th><th>ইম্পোর্টার</th><th>এজেন্ট</th><th>কন্টেইনার</th><th class="r">সিকিউরিটি</th><th>ডিপো</th><th>সার্ভে</th><th>এজেন্টে জমা</th><th>হিসাব</th><th class="r">ব্যালেন্স</th><th>অবস্থা</th></tr></thead><tbody>
   ${list.map(({ f, c }) => `<tr class="click ${c.flags.length ? 'flagged' : ''}" data-id="${esc(f.id)}" tabindex="0">
-    <td><b>${esc(f.no)}</b></td><td>${esc(f.importer)}</td><td class="num">${f.qty}×${f.size}</td>
+    <td><b>${esc(f.no)}</b></td><td class="num">${esc(f.cno) || '—'}</td><td>${esc(f.importer)}</td><td>${esc(f.agent) || '—'}</td><td class="num">${f.qty}×${f.size}</td>
     <td class="r num">${tk(c.sec)}</td><td class="num">${fd(f.depot)}</td><td class="num">${fd(f.survey)}</td><td class="num">${fd(f.submit)}</td><td class="num">${fd(f.hisab)}</td>
     <td class="r">${balCell(c)}</td><td>${statusCell(f, c)}</td></tr>`).join('')}
   </tbody></table></div>`;
@@ -282,41 +302,60 @@ function fileTable(list) {
 function viewFiles() {
   let R = rows();
   if (fImp !== 'all') R = R.filter(r => r.f.importer === fImp);
+  if (fAgent !== 'all') R = R.filter(r => r.f.agent === fAgent);
   const sf = { flag: r => r.c.flags.length, survey: r => r.c.flags.some(x => x.k === 'survey'), hisab: r => r.c.flags.some(x => x.k === 'hisab'), overdue: r => r.c.flags.some(x => x.k === 'overdue'), open: r => !r.f.release, released: r => r.f.release };
   if (sf[fStatus]) R = R.filter(sf[fStatus]);
-  if (fSearch) R = R.filter(r => r.f.no.toLowerCase().includes(fSearch.toLowerCase()));
+  if (fSearch) { const q = fSearch.toLowerCase(); R = R.filter(r => r.f.no.toLowerCase().includes(q) || String(r.f.cno || '').includes(q)); }
   R.sort((a, b) => (b.f.depot || '').localeCompare(a.f.depot || ''));
   const st = [['all', 'সব'], ['flag', 'লাল মার্ক'], ['survey', 'সার্ভে লেট'], ['hisab', 'হিসাব লেট'], ['overdue', 'ওভারডিউ'], ['open', 'চলমান'], ['released', 'রিলিজড']];
-  return `<div class="head"><h2>সব ফাইল</h2><span class="muted">${R.length}টা ফাইল · লাইনে ক্লিক করে আপডেট করুন</span></div>
+  return `<div class="head"><h2>সব জব</h2><span class="muted">${R.length}টা জব · লাইনে ক্লিক করে আপডেট করুন</span></div>
   <div class="filters">
     <select id="f-imp" aria-label="ইম্পোর্টার"><option value="all">সব ইম্পোর্টার</option>${importersAll().map(i => `<option ${i === fImp ? 'selected' : ''}>${esc(i)}</option>`).join('')}</select>
-    <input id="f-search" type="search" placeholder="ফাইল নম্বর খুঁজুন" value="${esc(fSearch)}" aria-label="ফাইল নম্বর খুঁজুন">
+    <select id="f-agent" aria-label="এজেন্ট"><option value="all">সব এজেন্ট</option>${agentsAll().map(i => `<option ${i === fAgent ? 'selected' : ''}>${esc(i)}</option>`).join('')}</select>
+    <input id="f-search" type="search" placeholder="জব নং বা C নং খুঁজুন" value="${esc(fSearch)}" aria-label="জব নং বা C নং খুঁজুন">
   </div>
   <div class="seg" role="group" aria-label="অবস্থা">${st.map(([k, l]) => `<button type="button" data-fs="${k}" aria-pressed="${fStatus === k}">${l}</button>`).join('')}</div>
-  ${R.length ? fileTable(R) : '<div class="panel empty">এই ফিল্টারে কোনো ফাইল নেই।</div>'}`;
+  ${R.length ? fileTable(R) : '<div class="panel empty">এই ফিল্টারে কোনো জব নেই।</div>'}`;
+}
+
+function agentMatrix() {
+  const imps = importersAll().filter(i => state.files.some(f => f.importer === i));
+  const ags = agentsUsed();
+  if (!imps.length || !ags.length) return '';
+  const n = (i, a) => state.files.filter(f => f.importer === i && f.agent === a).length;
+  const on = (i, a) => (stImp === 'all' || stImp === i) && (stAgent === 'all' || stAgent === a) && !(stImp === 'all' && stAgent === 'all');
+  return `<section><div class="head" style="margin-bottom:8px"><h2>কোন এজেন্টে কয়টা জব</h2><span class="muted">সংখ্যায় ক্লিক করলে নিচের স্টেটমেন্ট সেই ইম্পোর্টার + এজেন্টে ফিল্টার হবে</span></div>
+  <div class="tbl"><table class="mx"><thead><tr><th>ইম্পোর্টার</th>${ags.map(a => `<th class="ag">${esc(a)}</th>`).join('')}<th class="c">মোট</th></tr></thead><tbody>
+  ${imps.map(i => `<tr><td><b>${esc(i)}</b></td>${ags.map(a => { const k = n(i, a); return k ? `<td class="cell ${on(i, a) ? 'on' : ''}" data-mi="${esc(i)}" data-ma="${esc(a)}" tabindex="0">${k}</td>` : '<td class="zero">·</td>'; }).join('')}<td class="tot">${state.files.filter(f => f.importer === i).length}</td></tr>`).join('')}
+  </tbody><tfoot><tr><td>মোট</td>${ags.map(a => `<td>${state.files.filter(f => f.agent === a).length}</td>`).join('')}<td>${state.files.length}</td></tr></tfoot></table></div></section>`;
 }
 
 function viewStatement() {
-  const imps = importersAll();
+  const imps = importersAll(), ags = agentsUsed();
   let R = rows();
   if (stImp !== 'all') R = R.filter(r => r.f.importer === stImp);
+  if (stAgent !== 'all') R = R.filter(r => r.f.agent === stAgent);
   R.sort((a, b) => (a.f.depot || '').localeCompare(b.f.depot || ''));
-  const sum = list => { const p = list.filter(r => r.c.bal > 0).reduce((a, r) => a + r.c.bal, 0), m = list.filter(r => r.c.bal < 0).reduce((a, r) => a + r.c.bal, 0); return { p, m, net: p + m, pend: list.filter(r => r.c.bal == null).length, sec: list.reduce((a, r) => a + r.c.sec, 0) }; };
-  const line = ({ f, c }) => `<tr class="click ${c.flags.length ? 'flagged' : ''}" data-id="${esc(f.id)}" tabindex="0"><td><b>${esc(f.no)}</b></td><td class="num">${f.qty}×${f.size}</td><td class="num">${fd(f.depot)}</td><td class="num">${fd(f.hisab)}</td><td class="r num">${tk(c.sec)}</td><td class="r num">${f.cost != null && f.hisab ? tk(f.cost) : '—'}</td><td class="r">${balCell(c)}</td><td>${statusCell(f, c)}</td></tr>`;
+  const sum = list => { const p = list.filter(r => r.c.bal > 0).reduce((a, r) => a + r.c.bal, 0), m = list.filter(r => r.c.bal < 0).reduce((a, r) => a + r.c.bal, 0); return { p, m, net: p + m, pend: list.filter(r => r.c.bal == null).length }; };
+  const line = ({ f, c }) => `<tr class="click ${c.flags.length ? 'flagged' : ''}" data-id="${esc(f.id)}" tabindex="0"><td><b>${esc(f.no)}</b></td><td class="num">${esc(f.cno) || '—'}</td><td>${esc(f.agent) || '—'}</td><td class="num">${f.qty}×${f.size}</td><td class="num">${fd(f.depot)}</td><td class="num">${fd(f.hisab)}</td><td class="r num">${tk(c.sec)}</td><td class="r num">${f.cost != null && f.hisab ? tk(f.cost) : '—'}</td><td class="r">${balCell(c)}</td><td>${statusCell(f, c)}</td></tr>`;
   let body;
   if (stImp === 'all') {
     body = imps.map(imp => { const g = R.filter(r => r.f.importer === imp); if (!g.length) return ''; const s = sum(g);
-      return `<tr class="grp"><td colspan="8">${esc(imp)}</td></tr>${g.map(line).join('')}<tr class="sub"><td colspan="6">${esc(imp)} মোট · প্লাস <span class="plus num">${signed(s.p)}</span> · মাইনাস <span class="minus num">${signed(s.m)}</span>${s.pend ? ` · পেন্ডিং ${s.pend}টা` : ''}</td><td class="r num">${signed(s.net)}</td><td></td></tr>`; }).join('');
+      return `<tr class="grp"><td colspan="10">${esc(imp)} <span class="muted" style="font-weight:500">· ${g.length}টা জব</span></td></tr>${g.map(line).join('')}<tr class="sub"><td colspan="8">${esc(imp)} মোট · প্লাস <span class="plus num">${signed(s.p)}</span> · মাইনাস <span class="minus num">${signed(s.m)}</span>${s.pend ? ` · পেন্ডিং ${s.pend}টা` : ''}</td><td class="r num">${signed(s.net)}</td><td></td></tr>`; }).join('');
   } else body = R.map(line).join('');
   const t = sum(R);
-  return `<div class="head"><h2>স্টেটমেন্ট · ${stImp === 'all' ? 'All Files' : esc(stImp)}</h2><span class="muted">তারিখ: ${fd(today)}</span></div>
-  <div class="seg" role="group" aria-label="ইম্পোর্টার"><button type="button" data-st="all" aria-pressed="${stImp === 'all'}">All Files</button>${imps.map(i => `<button type="button" data-st="${esc(i)}" aria-pressed="${stImp === i}">${esc(i)}</button>`).join('')}</div>
+  const cnt = (k, v) => state.files.filter(f => f[k] === v && (k === 'importer' ? (stAgent === 'all' || f.agent === stAgent) : (stImp === 'all' || f.importer === stImp))).length;
+  const title = [stImp === 'all' ? 'All Jobs' : stImp, stAgent === 'all' ? '' : stAgent].filter(Boolean).map(esc).join(' · ');
+  return `${agentMatrix()}
+  <div class="head"><h2>স্টেটমেন্ট · ${title}</h2><span class="muted">তারিখ: ${fd(today)} · ${R.length}টা জব</span></div>
+  <div class="seg" role="group" aria-label="ইম্পোর্টার"><span class="lbl">ইম্পোর্টার</span><button type="button" data-st="all" aria-pressed="${stImp === 'all'}">All Jobs</button>${imps.map(i => `<button type="button" data-st="${esc(i)}" aria-pressed="${stImp === i}">${esc(i)}<small>${cnt('importer', i)}</small></button>`).join('')}</div>
+  <div class="seg" role="group" aria-label="শিপিং এজেন্ট"><span class="lbl">শিপিং এজেন্ট</span><button type="button" data-sa="all" aria-pressed="${stAgent === 'all'}">সব এজেন্ট</button>${ags.map(a => `<button type="button" data-sa="${esc(a)}" aria-pressed="${stAgent === a}">${esc(a)}<small>${cnt('agent', a)}</small></button>`).join('')}</div>
   <section class="panel"><div class="grid money">
     <div class="m"><span class="k">প্লাস (ফেরত পাবো)</span><span class="v plus">${signed(t.p)}</span></div>
     <div class="m"><span class="k">মাইনাস (বাড়তি খরচ)</span><span class="v minus">${signed(t.m)}</span></div>
-    <div class="m"><span class="k">হিসাব আসেনি</span><span class="v" style="color:var(--crit)">${t.pend}টা ফাইল</span></div>
+    <div class="m"><span class="k">হিসাব আসেনি</span><span class="v" style="color:var(--crit)">${t.pend}টা জব</span></div>
   </div></section>
-  ${R.length ? `<div class="tbl"><table><thead><tr><th>ফাইল নং</th><th>কন্টেইনার</th><th>ফাইল রিসিভ</th><th>হিসাব জমা</th><th class="r">সিকিউরিটি</th><th class="r">আসল খরচ</th><th class="r">অ্যামাউন্ট</th><th>অবস্থা</th></tr></thead><tbody>${body}</tbody></table></div>` : '<div class="panel empty">এই ইম্পোর্টারের কোনো ফাইল নেই।</div>'}`;
+  ${R.length ? `<div class="tbl"><table><thead><tr><th>জব নং</th><th>C নং</th><th>এজেন্ট</th><th>কন্টেইনার</th><th>জব রিসিভ</th><th>হিসাব জমা</th><th class="r">সিকিউরিটি</th><th class="r">আসল খরচ</th><th class="r">অ্যামাউন্ট</th><th>অবস্থা</th></tr></thead><tbody>${body}</tbody></table></div>` : '<div class="panel empty">এই ফিল্টারে কোনো জব নেই।</div>'}`;
 }
 
 /* ---------- render + routing ---------- */
@@ -332,14 +371,21 @@ window.addEventListener('hashchange', render);
 
 $('view').addEventListener('click', e => {
   const go = e.target.closest('[data-go]');
-  if (go) { fStatus = go.dataset.go; fImp = 'all'; fSearch = ''; location.hash = 'files'; render(); return; }
+  if (go) { fStatus = go.dataset.go; fImp = 'all'; fAgent = 'all'; fSearch = ''; location.hash = 'files'; render(); return; }
   const fs = e.target.closest('[data-fs]'); if (fs) { fStatus = fs.dataset.fs; render(); return; }
   const st = e.target.closest('[data-st]'); if (st) { stImp = st.dataset.st; render(); return; }
+  const sa = e.target.closest('[data-sa]'); if (sa) { stAgent = sa.dataset.sa; render(); return; }
+  const mx = e.target.closest('[data-mi]'); if (mx) { stImp = mx.dataset.mi; stAgent = mx.dataset.ma; render(); return; }
   const tr = e.target.closest('tr[data-id]'); if (tr) openFile(tr.dataset.id);
 });
-$('view').addEventListener('keydown', e => { const tr = e.target.closest('tr[data-id]'); if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openFile(tr.dataset.id); } });
+$('view').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const mx = e.target.closest('[data-mi]'); if (mx) { e.preventDefault(); stImp = mx.dataset.mi; stAgent = mx.dataset.ma; render(); return; }
+  const tr = e.target.closest('tr[data-id]'); if (tr) { e.preventDefault(); openFile(tr.dataset.id); }
+});
 $('view').addEventListener('change', e => {
   if (e.target.id === 'f-imp') { fImp = e.target.value; render(); }
+  if (e.target.id === 'f-agent') { fAgent = e.target.value; render(); }
   if (e.target.id === 'd-rel') { dashReleased = e.target.checked; render(); }
 });
 $('view').addEventListener('input', e => {
@@ -349,18 +395,20 @@ $('view').addEventListener('input', e => {
 $('t-date').addEventListener('change', e => { if (e.target.value) { today = e.target.value; render(); } });
 $('t-reset').addEventListener('click', () => { today = realToday(); render(); });
 
-/* ---------- file editor ---------- */
+/* ---------- job editor ---------- */
 let editId = null, delArmed = false;
-const F = ['no', 'qty', 'size', 'rate', 'depot', 'survey', 'submit', 'hisab', 'cost', 'release'];
-function fillImporters(sel) {
-  $('e-imp').innerHTML = importersAll().map(i => `<option ${i === sel ? 'selected' : ''}>${esc(i)}</option>`).join('') + '<option value="__new">+ নতুন ইম্পোর্টার…</option>';
+const F = ['no', 'cno', 'qty', 'size', 'rate', 'depot', 'survey', 'submit', 'hisab', 'cost', 'release'];
+function fillSelects(imp, agent) {
+  $('e-imp').innerHTML = importersAll().map(i => `<option ${i === imp ? 'selected' : ''}>${esc(i)}</option>`).join('') + '<option value="__new">+ নতুন ইম্পোর্টার…</option>';
+  $('e-agent').innerHTML = agentsAll().map(a => `<option ${a === agent ? 'selected' : ''}>${esc(a)}</option>`).join('') + '<option value="__new">+ অন্য এজেন্ট…</option>';
   $('imp-new-wrap').hidden = true; $('e-imp-new').value = '';
+  $('agent-new-wrap').hidden = true; $('e-agent-new').value = '';
 }
 function openFile(id) {
   editId = id; delArmed = false;
-  const f = id ? state.files.find(x => x.id === id) : { no: '', importer: importersAll()[0], qty: 1, size: '20', rate: state.settings.rate, depot: today };
-  $('dlg-title').textContent = id ? `ফাইল ${f.no} আপডেট` : 'নতুন ফাইল';
-  fillImporters(f.importer);
+  const f = id ? state.files.find(x => x.id === id) : { no: '', cno: '', importer: importersAll()[0], agent: agentsAll()[0], qty: 1, size: '20', rate: state.settings.rate, depot: today };
+  $('dlg-title').textContent = id ? `জব ${f.no} আপডেট` : 'নতুন জব';
+  fillSelects(f.importer, f.agent);
   F.forEach(k => { $('e-' + k).value = f[k] ?? ''; });
   $('e-del').hidden = !id; $('e-del').textContent = 'ডিলিট'; $('e-err').textContent = '';
   liveCalc(); $('dlg-file').showModal();
@@ -375,6 +423,7 @@ function liveCalc() {
 }
 $('file-form').addEventListener('input', liveCalc);
 $('e-imp').addEventListener('change', e => { const n = e.target.value === '__new'; $('imp-new-wrap').hidden = !n; if (n) $('e-imp-new').focus(); });
+$('e-agent').addEventListener('change', e => { const n = e.target.value === '__new'; $('agent-new-wrap').hidden = !n; if (n) $('e-agent-new').focus(); });
 $('e-cancel').addEventListener('click', () => $('dlg-file').close());
 $('e-del').addEventListener('click', () => {
   if (!delArmed) { delArmed = true; $('e-del').textContent = 'নিশ্চিত? আবার চাপুন'; return; }
@@ -384,11 +433,16 @@ $('file-form').addEventListener('submit', e => {
   e.preventDefault();
   const v = k => $('e-' + k).value.trim();
   const err = m => { $('e-err').textContent = m; };
-  let importer = $('e-imp').value === '__new' ? v('imp-new') : $('e-imp').value;
-  const rec = { no: v('no'), importer, qty: parseInt(v('qty'), 10), size: v('size'), rate: Number(v('rate')), depot: v('depot') || null, survey: v('survey') || null, submit: v('submit') || null, hisab: v('hisab') || null, cost: v('cost') === '' ? null : Number(v('cost')), release: v('release') || null };
-  if (!rec.no) return err('মাস্টার ফাইল নম্বর দিন।');
-  if (state.files.some(x => x.no.toLowerCase() === rec.no.toLowerCase() && x.id !== editId)) return err(`${rec.no} নম্বরের ফাইল আগেই আছে।`);
+  const importer = $('e-imp').value === '__new' ? v('imp-new') : $('e-imp').value;
+  const agent = $('e-agent').value === '__new' ? v('agent-new') : $('e-agent').value;
+  const rec = { no: v('no'), cno: v('cno'), importer, agent, qty: parseInt(v('qty'), 10), size: v('size'), rate: Number(v('rate')), depot: v('depot') || null, survey: v('survey') || null, submit: v('submit') || null, hisab: v('hisab') || null, cost: v('cost') === '' ? null : Number(v('cost')), release: v('release') || null };
+  if (!rec.no) return err('জব নম্বর দিন।');
+  if (state.files.some(x => x.no.toLowerCase() === rec.no.toLowerCase() && x.id !== editId)) return err(`${rec.no} নম্বরের জব আগেই আছে।`);
+  if (rec.cno && !/^\d+$/.test(rec.cno)) return err('C নম্বরে শুধু সংখ্যা দিন, যেমন 254777।');
+  if (rec.cno && state.files.some(x => x.cno === rec.cno && x.id !== editId)) return err(`C নম্বর ${rec.cno} আরেকটা জবে আগেই আছে।`);
   if (!importer) return err('ইম্পোর্টারের নাম দিন।');
+  if (/[ঀ-৿]/.test(importer)) return err('ইম্পোর্টারের নাম ইংরেজিতে লিখুন।');
+  if (!agent) return err('শিপিং এজেন্টের নাম দিন।');
   if (!(rec.qty >= 1)) return err('কন্টেইনার সংখ্যা কমপক্ষে ১ হতে হবে।');
   if (!(rec.rate >= 0) || v('rate') === '') return err('প্রতি কন্টেইনার সিকিউরিটি টাকা দিন।');
   if (rec.hisab && rec.cost == null) return err('হিসাবের তারিখ দিলে আসল খরচও লিখুন।');
@@ -397,6 +451,7 @@ $('file-form').addEventListener('submit', e => {
   let prev = null;
   for (const [k, l] of order) { if (rec[k]) { if (prev && rec[k] < rec[prev[0]]) return err(`${l}-এর তারিখ ${prev[1]}-এর আগে হতে পারে না।`); prev = [k, l]; } }
   if (!state.importers.includes(importer)) state.importers.push(importer);
+  if (!state.agents.includes(agent)) state.agents.push(agent);
   if (editId) Object.assign(state.files.find(x => x.id === editId), rec);
   else state.files.push({ id: 'f' + Date.now(), ...rec });
   save(); $('dlg-file').close(); render();
