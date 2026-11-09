@@ -7,7 +7,7 @@ import { Download, Printer } from "lucide-react";
 import { useApi } from "@/lib/api";
 import type { Job, Statement } from "@/lib/types";
 import { fd, qs, signed, tk } from "@/lib/format";
-import { Button, Card, Empty, ErrorBox, Loading, PageHeader, Segmented } from "@/components/ui";
+import { Button, Card, Empty, ErrorBox, Guide, Loading, PageHeader, Segmented } from "@/components/ui";
 import { Balance, JobStatus } from "@/components/status";
 import { td, th } from "@/components/job-table";
 
@@ -58,6 +58,16 @@ function StatementInner() {
             </Button>
           </>
         }
+      />
+
+      <Guide
+        id="statement"
+        steps={[
+          "উপরের টেবিলে দেখবেন কোন ইম্পোর্টারের কোন শিপিং এজেন্টে কয়টা জব আছে। কোনো সংখ্যায় চাপলে নিচের স্টেটমেন্ট শুধু সেই ইম্পোর্টার আর এজেন্টের জব দেখাবে।",
+          "অথবা নিচের বাটন দিয়ে আলাদা করে ইম্পোর্টার আর এজেন্ট বাছাই করুন। \"All Jobs\" আর \"সব এজেন্ট\" চাপলে সবার স্টেটমেন্ট আসবে।",
+          "অ্যামাউন্ট কলামে সবুজ + মানে টাকা ফেরত পাবেন, কমলা − মানে বাড়তি খরচ, লাল \"Pending\" মানে এজেন্টের হিসাব এখনো আসেনি।",
+          "\"Excel ডাউনলোড\" বা \"প্রিন্ট / PDF\" চেপে এই স্টেটমেন্ট ক্লায়েন্ট বা অফিসকে দিন।",
+        ]}
       />
 
       <section className="no-print flex flex-col gap-2">

@@ -5,7 +5,7 @@ import { api, useApi } from "@/lib/api";
 import { isAdmin, ROLE_LABEL, type Importer, type Settings, type UserRow } from "@/lib/types";
 
 type Assignable = "ADMIN" | "OPERATOR";
-import { Badge, Button, Card, ErrorBox, Field, Loading, PageHeader, Segmented, inputCls } from "@/components/ui";
+import { Badge, Button, Card, ErrorBox, Field, Guide, Loading, PageHeader, Segmented, inputCls } from "@/components/ui";
 import { useMe, useToast } from "@/components/shell";
 
 type Tab = "rules" | "importers" | "agents" | "users";
@@ -149,6 +149,9 @@ function UsersTab() {
   const [resetFor, setResetFor] = useState<{ id: number; password: string } | null>(null);
   const toast = useToast();
   const me = useMe();
+  const superAdmin = me?.role === "SUPER_ADMIN";
+  // Super admin manages everyone; an admin manages operators only.
+  const canManage = (u: UserRow) => u.role !== "SUPER_ADMIN" && (superAdmin || u.role === "OPERATOR");
 
   async function run(fn: () => Promise<unknown>, msg: string) {
     setErr(null);
@@ -166,10 +169,7 @@ function UsersTab() {
 
   return (
     <Card className="flex flex-col gap-4">
-      <p className="text-sm text-muted">
-        এখান থেকে সবার অ্যাকাউন্ট খুলুন, তারপর ইমেইল আর পাসওয়ার্ড তাঁকে দিয়ে দিন। কেউ নিজে থেকে রেজিস্টার করতে পারেন না। অ্যাডমিন রেট, নিয়ম আর জব ডিলিট
-        করতে পারেন; অপারেটর শুধু জব এন্ট্রি আর আপডেট।
-      </p>
+      <h2 className="font-bold">{superAdmin ? "নতুন অ্যাকাউন্ট খুলুন" : "নতুন অপারেটর অ্যাকাউন্ট খুলুন"}</h2>
       <form
         className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
         onSubmit={(e) => {
@@ -180,15 +180,21 @@ function UsersTab() {
         <input aria-label="নাম" placeholder="নাম" required className={inputCls} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
         <input aria-label="ইমেইল" placeholder="ইমেইল" type="email" required className={inputCls} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
         <input aria-label="পাসওয়ার্ড" placeholder="পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর)" type="password" minLength={8} required autoComplete="new-password" className={inputCls} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
-        <select aria-label="রোল" className={inputCls} value={f.role} onChange={(e) => setF({ ...f, role: e.target.value as Assignable })}>
-          <option value="OPERATOR">অপারেটর: এন্ট্রি ও আপডেট</option>
-          <option value="ADMIN">অ্যাডমিন: রেট, নিয়ম, ডিলিট</option>
-        </select>
+        {superAdmin ? (
+          <select aria-label="রোল" className={inputCls} value={f.role} onChange={(e) => setF({ ...f, role: e.target.value as Assignable })}>
+            <option value="OPERATOR">অপারেটর: এন্ট্রি ও আপডেট</option>
+            <option value="ADMIN">অ্যাডমিন: রেট, নিয়ম, ডিলিট, অপারেটর খোলা</option>
+          </select>
+        ) : (
+          <p className="flex items-center rounded-lg bg-sunk px-3 text-sm text-muted">রোল: অপারেটর</p>
+        )}
         <Button type="submit" variant="primary">
-          ইউজার যোগ করুন
+          অ্যাকাউন্ট খুলুন
         </Button>
       </form>
       {err && <p className="font-semibold text-crit">{err}</p>}
+      <h2 className="mt-2 font-bold">{superAdmin ? "সব অ্যাকাউন্ট" : "অপারেটর অ্যাকাউন্ট"}</h2>
+      {!data.length && <p className="text-muted">এখনো কোনো অ্যাকাউন্ট খোলা হয়নি।</p>}
       <ul className="divide-y divide-line">
         {data.map((u) => (
           <li key={u.id} className="flex flex-wrap items-center gap-3 py-2.5">
@@ -199,7 +205,7 @@ function UsersTab() {
             <Badge tone={u.role === "SUPER_ADMIN" ? "good" : u.role === "ADMIN" ? "info" : "neutral"}>{ROLE_LABEL[u.role]}</Badge>
             {!u.active && <Badge tone="crit">বন্ধ</Badge>}
             <span className="ml-auto flex flex-wrap gap-2">
-              {resetFor?.id === u.id ? (
+              {!canManage(u) && u.id !== me?.id ? null : resetFor?.id === u.id ? (
                 <>
                   <input aria-label="নতুন পাসওয়ার্ড" type="password" autoComplete="new-password" placeholder="নতুন পাসওয়ার্ড" className={`${inputCls} w-48`} value={resetFor.password} onChange={(e) => setResetFor({ ...resetFor, password: e.target.value })} />
                   <Button size="sm" variant="primary" onClick={() => run(() => api(`/users/${u.id}`, { method: "PATCH", json: { password: resetFor.password } }).then(() => setResetFor(null)), "পাসওয়ার্ড বদলানো হয়েছে")}>
@@ -214,7 +220,7 @@ function UsersTab() {
                   পাসওয়ার্ড বদলান
                 </Button>
               )}
-              {u.id !== me?.id && u.role !== "SUPER_ADMIN" && (
+              {u.id !== me?.id && canManage(u) && (
                 <Button size="sm" variant="ghost" onClick={() => run(() => api(`/users/${u.id}`, { method: "PATCH", json: { active: !u.active } }), u.active ? "ইউজার বন্ধ করা হয়েছে" : "ইউজার চালু হয়েছে")}>
                   {u.active ? "বন্ধ করুন" : "চালু করুন"}
                 </Button>
@@ -236,16 +242,65 @@ export default function SettingsPage() {
     { value: "rules", label: "নিয়ম ও রেট" },
     { value: "importers", label: "ইম্পোর্টার" },
     { value: "agents", label: "শিপিং এজেন্ট" },
-    ...(superAdmin ? [{ value: "users" as Tab, label: "ইউজার অ্যাকাউন্ট" }] : []),
+    ...(admin ? [{ value: "users" as Tab, label: superAdmin ? "ইউজার অ্যাকাউন্ট" : "অপারেটর অ্যাকাউন্ট" }] : []),
   ];
+  const guides: Record<Tab, { steps: string[]; note: string }> = {
+    rules: {
+      steps: [
+        "ডিফল্ট সিকিউরিটি: নতুন জবে প্রতি কন্টেইনারের এই রেট নিজে থেকে বসবে। কোনো জবে আলাদা রেট লাগলে জবের ফর্মেই বদলাবেন।",
+        "সার্ভে লেট: ডিপো রিসিভিংয়ের পর এত দিনের বেশি গেলেও সার্ভে না এলে জব লাল হবে।",
+        "হিসাব লেট: সার্ভে রিপোর্টের পর এত দিন বা বেশি গেলেও এজেন্টের হিসাব না এলে জব লাল হবে।",
+        "ওভারডিউ: এজেন্টকে জমার পর এত দিনের বেশি গেলেও রিলিজ না হলে জব লাল হবে।",
+        "সংখ্যা বদলে \"সেভ করুন\" চাপুন। সব জবে সাথে সাথে নতুন নিয়ম খাটবে।",
+      ],
+      note: "এই নিয়ম শুধু অ্যাডমিন আর সুপার অ্যাডমিন বদলাতে পারেন।",
+    },
+    importers: {
+      steps: [
+        "উপরের ঘরে নাম ইংরেজিতে লিখে \"যোগ করুন\" চাপুন, যেমন Rahman Steel।",
+        "বানান ভুল হলে \"নাম বদলান\" চেপে ঠিক করুন। পুরোনো সব জবেও নাম বদলে যাবে।",
+        "যার সাথে আর কাজ হয় না, তাকে \"লিস্ট থেকে লুকান\"। নতুন জবের লিস্টে আসবে না, কিন্তু পুরোনো জব আর স্টেটমেন্টে থাকবে।",
+      ],
+      note: "নতুন জবের ফর্ম থেকেও \"+\" বাটন চেপে ইম্পোর্টার যোগ করা যায়।",
+    },
+    agents: {
+      steps: [
+        "ক্লায়েন্টের ৯টা শিপিং এজেন্ট আগে থেকেই দেওয়া আছে।",
+        "নতুন এজেন্ট লাগলে নাম লিখে \"যোগ করুন\" চাপুন।",
+        "বানান ঠিক করতে \"নাম বদলান\", আর পুরোনো এজেন্ট সরাতে \"লিস্ট থেকে লুকান\" চাপুন।",
+      ],
+      note: "নতুন জবের ফর্ম থেকেও \"+\" বাটন চেপে এজেন্ট যোগ করা যায়।",
+    },
+    users: superAdmin
+      ? {
+          steps: [
+            "নাম, ইমেইল, পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর) আর রোল দিয়ে \"অ্যাকাউন্ট খুলুন\" চাপুন।",
+            "ইমেইল আর পাসওয়ার্ড ওই মানুষটিকে দিয়ে দিন। তিনি এগুলো দিয়ে লগইন করবেন। কেউ নিজে রেজিস্টার করতে পারেন না।",
+            "অপারেটর: শুধু জব এন্ট্রি আর আপডেট। অ্যাডমিন: রেট, নিয়ম, জব ডিলিট আর অপারেটর অ্যাকাউন্ট খোলা।",
+            "কেউ পাসওয়ার্ড ভুলে গেলে \"পাসওয়ার্ড বদলান\" দিয়ে নতুন পাসওয়ার্ড দিন।",
+            "কেউ চলে গেলে \"বন্ধ করুন\" চাপুন। তিনি আর লগইন করতে পারবেন না, কিন্তু তাঁর আগের কাজের ইতিহাস থেকে যাবে।",
+          ],
+          note: "সুপার অ্যাডমিন একজনই। তাঁকে বন্ধ করা যায় না; ইমেইল বা পাসওয়ার্ড বদলাতে সার্ভারের .env বদলে npm run admin:reset চালাতে হয়।",
+        }
+      : {
+          steps: [
+            "নাম, ইমেইল আর পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর) দিয়ে \"অ্যাকাউন্ট খুলুন\" চাপুন। নতুন অ্যাকাউন্ট সবসময় অপারেটর হবে।",
+            "ইমেইল আর পাসওয়ার্ড ওই মানুষটিকে দিয়ে দিন। তিনি এগুলো দিয়ে লগইন করবেন।",
+            "কেউ পাসওয়ার্ড ভুলে গেলে \"পাসওয়ার্ড বদলান\" দিয়ে নতুন পাসওয়ার্ড দিন।",
+            "কেউ চলে গেলে \"বন্ধ করুন\" চাপুন। তিনি আর লগইন করতে পারবেন না।",
+          ],
+          note: "অ্যাডমিন অ্যাকাউন্ট খোলা বা বদলানো শুধু সুপার অ্যাডমিন করতে পারেন।",
+        },
+  };
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="সেটিংস" subtitle="লাল মার্কের নিয়ম, ডিফল্ট রেট, ইম্পোর্টার, শিপিং এজেন্ট আর ইউজার" />
+      <PageHeader title="সেটিংস" subtitle="লাল মার্কের নিয়ম, ডিফল্ট রেট, ইম্পোর্টার, শিপিং এজেন্ট আর অ্যাকাউন্ট" />
       <Segmented value={tab} onChange={setTab} options={tabs} />
+      <Guide id={`settings-${tab}${tab === "users" && superAdmin ? "-super" : ""}`} steps={guides[tab].steps} note={guides[tab].note} />
       {tab === "rules" && <RulesTab admin={admin} />}
       {tab === "importers" && <NamesTab kind="importers" admin={admin} />}
       {tab === "agents" && <NamesTab kind="agents" admin={admin} />}
-      {tab === "users" && superAdmin && <UsersTab />}
+      {tab === "users" && admin && <UsersTab />}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useApi } from "@/lib/api";
 import type { Dashboard, GroupSum } from "@/lib/types";
 import { fd, qs, signed } from "@/lib/format";
-import { Card, Empty, ErrorBox, Loading, PageHeader } from "@/components/ui";
+import { Card, Empty, ErrorBox, Guide, Loading, PageHeader } from "@/components/ui";
 import { JobTable } from "@/components/job-table";
 
 function Tile({ href, n, label, hint, alert }: { href: string; n: number; label: string; hint: string; alert?: boolean }) {
@@ -51,6 +51,16 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="ড্যাশবোর্ড" subtitle={`আজ ${fd(data.today)} · মোট ${data.counts.total}টা জব`} />
+      <Guide
+        id="dashboard"
+        steps={[
+          "উপরের লাল বক্সগুলো দেখায় কয়টা জব দেরি হচ্ছে। বক্সে চাপলে ওই জবগুলোর লিস্ট খুলবে।",
+          `সার্ভে লেট: ডিপো রিসিভিংয়ের ${s.surveyDays} দিনের বেশি পরেও সার্ভে আসেনি। হিসাব লেট: সার্ভের ${s.billDays} দিন বা বেশি পরেও এজেন্টের হিসাব আসেনি। ওভারডিউ: এজেন্টে জমার ${s.releaseDays} দিনের বেশি পরেও রিলিজ হয়নি।`,
+          "প্লাস মানে খরচ সিকিউরিটির চেয়ে কম, টাকা ফেরত পাবেন। মাইনাস মানে খরচ বেশি, বাড়তি দিতে হয়েছে।",
+          "নিচের \"এখনই দেখতে হবে\" লিস্টে সবচেয়ে বেশি দেরির জব আগে আসে। জবে চাপ দিয়ে তারিখ আপডেট করুন।",
+        ]}
+        note={"নতুন ফাইল এলে বাম পাশের \"নতুন জব\" বাটন চাপুন।"}
+      />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="সতর্কতা">
         <Tile href="/jobs?status=SURVEY_LATE" alert n={data.counts.surveyLate} label="সার্ভে লেট" hint={`ডিপোর ${s.surveyDays} দিনের বেশি পরেও সার্ভে নেই`} />

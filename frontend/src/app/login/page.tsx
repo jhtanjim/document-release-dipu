@@ -67,7 +67,10 @@ export default function LoginPage() {
         <Suspense>
           <LoginForm />
         </Suspense>
-        <p className="mt-6 text-[13px] text-muted">অ্যাকাউন্ট না থাকলে অ্যাডমিনের কাছে চান।</p>
+        <div className="mt-6 rounded-lg bg-sunk px-4 py-3 text-[13.5px] leading-relaxed text-muted">
+          অফিস থেকে যে ইমেইল আর পাসওয়ার্ড দেওয়া হয়েছে, সেটা দিন। অ্যাকাউন্ট না থাকলে বা পাসওয়ার্ড ভুলে গেলে আপনার অ্যাডমিনকে বলুন, তিনি
+          নতুন পাসওয়ার্ড দিয়ে দেবেন।
+        </div>
       </div>
     </div>
   );

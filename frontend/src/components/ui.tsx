@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { AlertTriangle, ChevronDown, Lightbulb, Loader2 } from "lucide-react";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -58,15 +58,65 @@ export function ConfirmButton({
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-xl border border-line bg-surface p-4 sm:p-5 ${className}`}>{children}</section>;
+  return (
+    <section className={`rounded-xl border border-line bg-surface p-4 shadow-[0_1px_2px_rgba(16,24,40,0.05)] sm:p-5 ${className}`}>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * "How to use this page" box shown at the top of every page. Open by default;
+ * once someone closes it, it stays closed for them on that page.
+ */
+export function Guide({ id, steps, note }: { id: string; steps: ReactNode[]; note?: ReactNode }) {
+  const key = `guide:${id}`;
+  const [open, setOpen] = useState(true);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(key) === "closed") setOpen(false);
+    } catch {}
+  }, [key]);
+  const toggle = () =>
+    setOpen((o) => {
+      try {
+        localStorage.setItem(key, o ? "closed" : "open");
+      } catch {}
+      return !o;
+    });
+  return (
+    <section className="no-print rounded-xl border border-accent/25 bg-accent-soft/70">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 px-4 py-3 text-left text-[15px] font-semibold text-accent"
+      >
+        <Lightbulb className="size-[18px] shrink-0" aria-hidden />
+        কীভাবে ব্যবহার করবেন
+        <span className="ml-auto text-[13px] font-normal">{open ? "লুকান" : "দেখুন"}</span>
+        <ChevronDown className={`size-4 transition ${open ? "rotate-180" : ""}`} aria-hidden />
+      </button>
+      {open && (
+        <div className="px-4 pb-4">
+          <ol className="ml-5 list-decimal space-y-1.5 text-[14.5px] leading-relaxed text-ink marker:font-semibold marker:text-accent">
+            {steps.map((s, i) => (
+              <li key={i}>{s}</li>
+            ))}
+          </ol>
+          {note && <p className="mt-3 border-t border-accent/20 pt-2 text-[13.5px] text-muted">{note}</p>}
+        </div>
+      )}
+    </section>
+  );
 }
 
 export function PageHeader({ title, subtitle, actions }: { title: ReactNode; subtitle?: ReactNode; actions?: ReactNode }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="text-xl font-bold text-balance sm:text-2xl">{title}</h1>
-        {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
+        <h1 className="text-[22px] font-bold text-balance sm:text-[26px]">{title}</h1>
+        {subtitle && <p className="mt-1 text-[14.5px] text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="no-print flex flex-wrap gap-2">{actions}</div>}
     </div>
@@ -74,7 +124,7 @@ export function PageHeader({ title, subtitle, actions }: { title: ReactNode; sub
 }
 
 export const inputCls =
-  "w-full min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-[15px] text-ink placeholder:text-muted/70 focus:border-accent focus:outline-none";
+  "w-full min-w-0 rounded-lg border border-line bg-surface px-3 py-2.5 text-[15px] text-ink placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:bg-sunk disabled:text-muted";
 
 export function Field({
   label,

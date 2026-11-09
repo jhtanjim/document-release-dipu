@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { useApi } from "@/lib/api";
 import type { Agent, Importer, JobList } from "@/lib/types";
 import { qs } from "@/lib/format";
-import { Empty, ErrorBox, Loading, PageHeader, Segmented, inputCls } from "@/components/ui";
+import { Empty, ErrorBox, Guide, Loading, PageHeader, Segmented, inputCls } from "@/components/ui";
 import { JobTable } from "@/components/job-table";
 
 const STATUS = [
@@ -56,6 +56,16 @@ function JobsInner() {
         }
       />
 
+      <Guide
+        id="jobs"
+        steps={[
+          "উপরের ঘর থেকে ইম্পোর্টার বা শিপিং এজেন্ট বাছাই করলে শুধু তাদের জব দেখাবে।",
+          "জব নং বা C নং লিখে খুঁজুন, যেমন 254777।",
+          "\"অবস্থা\" বাটন দিয়ে শুধু লাল, হিসাব আসেনি, চলমান বা রিলিজড জব দেখুন।",
+          "যেকোনো লাইনে চাপ দিলে জবটা খুলবে। সেখানে তারিখ আর খরচ আপডেট করবেন।",
+        ]}
+        note="বাম পাশে লাল দাগ মানে জবটা দেরি হচ্ছে। শেষ কলামে কারণ আর কত দিন লেখা থাকে।"
+      />
       <div className="flex flex-wrap gap-2">
         <select aria-label="ইম্পোর্টার" className={`${inputCls} sm:w-56`} value={importerId} onChange={(e) => set({ importerId: e.target.value })}>
           <option value="">সব ইম্পোর্টার</option>

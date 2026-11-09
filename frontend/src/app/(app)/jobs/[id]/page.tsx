@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { api, useApi } from "@/lib/api";
 import { isAdmin, type JobDetail } from "@/lib/types";
 import { FIELD_LABEL, signed, tk } from "@/lib/format";
-import { Card, ConfirmButton, ErrorBox, Loading, PageHeader } from "@/components/ui";
+import { Card, ConfirmButton, ErrorBox, Guide, Loading, PageHeader } from "@/components/ui";
 import { JobForm } from "@/components/job-form";
 import { Balance, JobStatus } from "@/components/status";
 import { useMe, useToast } from "@/components/shell";
@@ -57,6 +57,16 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
         actions={isAdmin(me?.role) ? <ConfirmButton onConfirm={remove} confirmText="ডিলিট নিশ্চিত? আবার চাপুন">জব ডিলিট</ConfirmButton> : undefined}
       />
 
+      <Guide
+        id="job-detail"
+        steps={[
+          "কাজ এগোলে নিচের ফর্মে তারিখ বসান: সার্ভে রিপোর্ট এলে ধাপ ২, এজেন্টকে জমা দিলে আর হিসাব এলে ধাপ ৩।",
+          "এজেন্টের হিসাব এলে হিসাবের তারিখ আর আসল খরচ দুটোই দিন। তখন ব্যালেন্স প্লাস বা মাইনাস হয়ে দেখাবে।",
+          "টাকা ফেরত পেলে বা ফাইনাল সেটেলমেন্ট হলে রিলিজ তারিখ দিন। তখন জবটা আর লাল হবে না।",
+          "শেষে \"আপডেট সেভ করুন\" চাপুন।",
+        ]}
+        note={"কে কবে কী বদলেছেন, পাতার নিচে \"পরিবর্তনের ইতিহাস\"-এ দেখা যায়।"}
+      />
       <Card className="grid gap-3 sm:grid-cols-3">
         <div>
           <p className="text-[13px] text-muted">সিকিউরিটি মানি</p>

@@ -3,6 +3,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  ForbiddenException,
   Get,
   Module,
   NotFoundException,
@@ -56,21 +57,31 @@ class UpdateUserDto {
 
 const select = { id: true, name: true, email: true, role: true, active: true };
 
-@Roles('SUPER_ADMIN')
+const OPERATORS_ONLY =
+  'অ্যাডমিন শুধু অপারেটর অ্যাকাউন্ট খুলতে ও সামলাতে পারেন।';
+
+/**
+ * The super admin manages every account. An admin manages operator accounts only:
+ * they see operators, can open new ones, reset their passwords and disable them.
+ */
+@Roles('ADMIN')
 @Controller('users')
 export class UsersController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
-  list() {
+  list(@CurrentUser() me: AuthUser) {
     return this.prisma.user.findMany({
+      where: me.role === 'SUPER_ADMIN' ? {} : { role: 'OPERATOR' },
       select,
       orderBy: [{ active: 'desc' }, { name: 'asc' }],
     });
   }
 
   @Post()
-  async create(@Body() dto: CreateUserDto) {
+  async create(@Body() dto: CreateUserDto, @CurrentUser() me: AuthUser) {
+    if (me.role !== 'SUPER_ADMIN' && dto.role !== 'OPERATOR')
+      throw new ForbiddenException(OPERATORS_ONLY);
     const email = dto.email.toLowerCase().trim();
     if (await this.prisma.user.findUnique({ where: { email } }))
       throw new ConflictException('এই ইমেইলে আগেই একজন ইউজার আছেন।');
@@ -93,6 +104,11 @@ export class UsersController {
   ) {
     const target = await this.prisma.user.findUnique({ where: { id } });
     if (!target) throw new NotFoundException('ইউজার পাওয়া যায়নি।');
+    if (
+      me.role !== 'SUPER_ADMIN' &&
+      (target.role !== 'OPERATOR' || (dto.role && dto.role !== 'OPERATOR'))
+    )
+      throw new ForbiddenException(OPERATORS_ONLY);
     if (target.role === 'SUPER_ADMIN' && (dto.active === false || dto.role))
       throw new BadRequestException(
         'সুপার অ্যাডমিনকে বন্ধ করা বা রোল বদলানো যাবে না। শুধু নাম আর পাসওয়ার্ড বদলানো যায়।',
