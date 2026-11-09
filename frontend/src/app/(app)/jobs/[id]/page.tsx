@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown, Pencil } from "lucide-react";
 import { api, useApi } from "@/lib/api";
 import { isAdmin, type JobDetail } from "@/lib/types";
 import { FIELD_LABEL, signed, tk } from "@/lib/format";
 import { Card, ConfirmButton, ErrorBox, Guide, Loading, PageHeader } from "@/components/ui";
 import { JobForm } from "@/components/job-form";
+import { JobSteps, NextStep } from "@/components/job-progress";
 import { Balance, JobStatus } from "@/components/status";
 import { useMe, useToast } from "@/components/shell";
 
@@ -58,15 +59,19 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
       />
 
       <Guide
-        id="job-detail"
+        id="job-detail-v2"
         steps={[
-          "কাজ এগোলে নিচের ফর্মে তারিখ বসান: সার্ভে রিপোর্ট এলে ধাপ ২, এজেন্টকে জমা দিলে আর হিসাব এলে ধাপ ৩।",
-          "এজেন্টের হিসাব এলে হিসাবের তারিখ আর আসল খরচ দুটোই দিন। তখন ব্যালেন্স প্লাস বা মাইনাস হয়ে দেখাবে।",
-          "টাকা ফেরত পেলে বা ফাইনাল সেটেলমেন্ট হলে রিলিজ তারিখ দিন। তখন জবটা আর লাল হবে না।",
-          "শেষে \"আপডেট সেভ করুন\" চাপুন।",
+          "উপরের ধাপগুলো দেখায় জবটা কোথায় আছে: সবুজ = হয়ে গেছে, লাল = দেরি হচ্ছে, নীল = এখন বাকি।",
+          "\"পরের কাজ\" বক্সে শুধু তারিখ দিয়ে বাটন চাপুন। সার্ভে এলো, এজেন্টকে দিলাম, হিসাব এলো, রিলিজ হলো, একটা একটা করে।",
+          "এজেন্টের হিসাব এলে তারিখের সাথে আসল খরচও দিন। প্লাস (ফেরত পাবো) বা মাইনাস (বাড়তি খরচ) নিজে থেকে হিসাব হবে।",
+          "কোনো ভুল ঠিক করতে নিচের \"সব তথ্য এডিট করুন\" খুলুন।",
         ]}
         note={"কে কবে কী বদলেছেন, পাতার নিচে \"পরিবর্তনের ইতিহাস\"-এ দেখা যায়।"}
       />
+      <Card>
+        <JobSteps job={job} />
+      </Card>
+      <NextStep key={job.updatedAt} job={job} onSaved={reload} />
       <Card className="grid gap-3 sm:grid-cols-3">
         <div>
           <p className="text-[13px] text-muted">সিকিউরিটি মানি</p>
@@ -90,7 +95,17 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
         </div>
       </Card>
 
-      <JobForm key={job.updatedAt} job={job} onSaved={() => reload()} />
+      <details className="group rounded-xl border border-line bg-surface">
+        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3.5 font-semibold sm:px-5">
+          <Pencil className="size-4 text-accent" aria-hidden />
+          সব তথ্য এডিট করুন
+          <span className="text-sm font-normal text-muted">(জব নং, C নং, এজেন্ট, কন্টেইনার, রেট, সব তারিখ)</span>
+          <ChevronDown className="ml-auto size-4 transition group-open:rotate-180" aria-hidden />
+        </summary>
+        <div className="border-t border-line bg-bg p-3 sm:p-4">
+          <JobForm key={job.updatedAt} job={job} onSaved={() => reload()} />
+        </div>
+      </details>
 
       <Card>
         <h2 className="mb-2 font-bold">পরিবর্তনের ইতিহাস</h2>
