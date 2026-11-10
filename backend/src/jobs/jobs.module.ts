@@ -111,6 +111,7 @@ class ListQuery {
     'BILL_LATE',
     'OVERDUE',
     'PENDING_BILL',
+    'NO_DEPOT',
     'OPEN',
     'RELEASED',
   ])
@@ -188,7 +189,8 @@ export class JobsService {
       BILL_LATE: (v) => has(v, 'BILL_LATE'),
       OVERDUE: (v) => has(v, 'OVERDUE'),
       PENDING_BILL: (v) => v.balance === null,
-      OPEN: (v) => v.releasedAt === null,
+      NO_DEPOT: (v) => v.depotReceivedAt === null,
+      OPEN: (v) => v.depotReceivedAt !== null && v.releasedAt === null,
       RELEASED: (v) => v.releasedAt !== null,
     };
     if (q.status && filters[q.status]) items = items.filter(filters[q.status]);

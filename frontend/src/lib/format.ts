@@ -15,7 +15,7 @@ export const FLAG_LABEL: Record<FlagType, string> = {
 };
 
 export const STAGE_LABEL: Record<Stage, string> = {
-  NEW: "নতুন",
+  NEW: "ডিপো রিসিভিং বাকি",
   DEPOT: "ডিপো রিসিভড",
   SURVEY: "সার্ভে এসেছে",
   WITH_AGENT: "এজেন্টের কাছে",

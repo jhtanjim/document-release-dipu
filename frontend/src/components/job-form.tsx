@@ -35,7 +35,6 @@ const DATES = [
 ] as const;
 
 function fromJob(j: Job | undefined, defaultRate: number): FormState {
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date());
   return {
     jobNo: j?.jobNo ?? "",
     cNumber: j?.cNumber ?? "",
@@ -44,7 +43,7 @@ function fromJob(j: Job | undefined, defaultRate: number): FormState {
     containerCount: j ? String(j.containerCount) : "1",
     containerSize: j?.containerSize ?? "20",
     ratePerContainer: String(j?.ratePerContainer ?? defaultRate),
-    depotReceivedAt: j ? j.depotReceivedAt ?? "" : today,
+    depotReceivedAt: j?.depotReceivedAt ?? "",
     surveyReceivedAt: j?.surveyReceivedAt ?? "",
     submittedToAgentAt: j?.submittedToAgentAt ?? "",
     agentBillAt: j?.agentBillAt ?? "",
@@ -274,8 +273,8 @@ export function JobForm({ job, onSaved }: { job?: Job; onSaved?: (j: Job) => voi
       <Card>
         <h2 className="mb-3 text-[13px] font-bold tracking-wide text-accent">ধাপ ২ · ডিপো ও সার্ভে</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          {date("depotReceivedAt", "ডিপো রিসিভিং তারিখ")}
-          {date("surveyReceivedAt", "সার্ভে রিপোর্ট পাওয়ার তারিখ", "রিপোর্ট হাতে এলে দিন")}
+          {date("depotReceivedAt", "ডিপো রিসিভিং তারিখ", "ডিপো রিসিভিং ফাইল না এলে খালি রাখুন, পরে বসাবেন")}
+          {date("surveyReceivedAt", "সার্ভে রিপোর্ট পাওয়ার তারিখ", "রিপোর্ট না এলে খালি রাখুন; খালি থাকলে স্টেটমেন্টে উঠবে না")}
         </div>
       </Card>
 

@@ -2,23 +2,38 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { AlertTriangle, FilePlus2, FileSpreadsheet } from "lucide-react";
+import { AlertTriangle, CalendarCheck, FilePlus2, FileSpreadsheet } from "lucide-react";
 import { useApi } from "@/lib/api";
 import type { Dashboard, GroupSum } from "@/lib/types";
 import { fd, qs, signed } from "@/lib/format";
 import { Card, Empty, ErrorBox, Guide, Loading, PageHeader } from "@/components/ui";
 import { JobTable } from "@/components/job-table";
 
-function Tile({ href, n, label, hint, alert }: { href: string; n: number; label: string; hint: string; alert?: boolean }) {
+function Tile({
+  href,
+  n,
+  label,
+  hint,
+  alert,
+  warn,
+}: {
+  href: string;
+  n: number;
+  label: string;
+  hint: string;
+  alert?: boolean;
+  warn?: boolean;
+}) {
   const red = alert && n > 0;
+  const amber = warn && n > 0;
   return (
     <Link
       href={href}
       className={`flex flex-col gap-0.5 rounded-xl border p-4 transition hover:border-accent ${
-        red ? "border-crit bg-crit-bg" : "border-line bg-surface"
+        red ? "border-crit bg-crit-bg" : amber ? "border-warn/60 bg-warn-bg" : "border-line bg-surface"
       }`}
     >
-      <span className={`num text-3xl leading-tight ${red ? "text-crit" : ""}`}>{n}</span>
+      <span className={`num text-3xl leading-tight ${red ? "text-crit" : amber ? "text-warn" : ""}`}>{n}</span>
       <span className="font-semibold">{label}</span>
       <span className="text-[12.5px] text-muted">{hint}</span>
     </Link>
@@ -51,10 +66,21 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="ড্যাশবোর্ড" subtitle={`আজ ${fd(data.today)} · মোট ${data.counts.total}টা জব`} />
-      <section className="grid gap-3 sm:grid-cols-3" aria-label="শর্টকাট">
+      <PageHeader
+        title="ড্যাশবোর্ড"
+        subtitle={`আজ ${fd(data.today)} · মোট ${data.counts.total}টা জব (ডিপো রিসিভিং পাওয়া)${
+          data.counts.awaitingDepot ? ` · আরও ${data.counts.awaitingDepot}টা ডিপো রিসিভিংয়ের অপেক্ষায়` : ""
+        }`}
+      />
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="শর্টকাট">
         {[
-          { href: "/jobs/new", icon: FilePlus2, title: "নতুন জব এন্ট্রি", text: "ডিপো রিসিভিং ফাইল এলে", primary: true },
+          { href: "/jobs/new", icon: FilePlus2, title: "নতুন জব এন্ট্রি", text: "ডেমো বা ডিপো রিসিভিং ফাইল এলে", primary: true },
+          {
+            href: "/jobs?status=NO_DEPOT",
+            icon: CalendarCheck,
+            title: "ডিপো রিসিভিং তারিখ আপডেট",
+            text: data.counts.awaitingDepot ? `${data.counts.awaitingDepot}টা জবে তারিখ বাকি` : "কোনো জবে বাকি নেই",
+          },
           { href: "/jobs?status=FLAGGED", icon: AlertTriangle, title: "লাল জবগুলো আপডেট", text: `${data.attention.length}টা জবে কাজ বাকি` },
           { href: "/statement", icon: FileSpreadsheet, title: "স্টেটমেন্ট দেখুন", text: "ইম্পোর্টার ও এজেন্ট অনুযায়ী" },
         ].map(({ href, icon: Icon, title, text, primary }) => (
@@ -77,8 +103,10 @@ export default function DashboardPage() {
       </section>
 
       <Guide
-        id="dashboard"
+        id="dashboard-v2"
         steps={[
+          "ডেমো ফাইল এলে \"নতুন জব এন্ট্রি\" দিয়ে জব খুলুন, ডিপো রিসিভিং তারিখ খালি রাখুন। পরে ডিপো রিসিভিং ফাইল এলে \"ডিপো রিসিভিং তারিখ আপডেট\" থেকে তারিখ বসান।",
+          "ডিপো রিসিভিং তারিখ দেওয়ার পর থেকেই জবটা \"মোট জব\"-এ গোনা হয়। তার আগ পর্যন্ত নিচের \"ডিপো রিসিভিং পাওয়া যায়নি\" ঘরে থাকে।",
           "উপরের লাল বক্সগুলো দেখায় কয়টা জব দেরি হচ্ছে। বক্সে চাপলে ওই জবগুলোর লিস্ট খুলবে।",
           `সার্ভে লেট: ডিপো রিসিভিংয়ের ${s.surveyDays} দিনের বেশি পরেও সার্ভে আসেনি। হিসাব লেট: সার্ভের ${s.billDays} দিন বা বেশি পরেও এজেন্টের হিসাব আসেনি। ওভারডিউ: এজেন্টে জমার ${s.releaseDays} দিনের বেশি পরেও রিলিজ হয়নি।`,
           "প্লাস মানে খরচ সিকিউরিটির চেয়ে কম, টাকা ফেরত পাবেন। মাইনাস মানে খরচ বেশি, বাড়তি দিতে হয়েছে।",
@@ -87,11 +115,12 @@ export default function DashboardPage() {
         note={"নতুন ফাইল এলে বাম পাশের \"নতুন জব\" বাটন চাপুন।"}
       />
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="সতর্কতা">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="সতর্কতা">
+        <Tile href="/jobs?status=NO_DEPOT" warn n={data.counts.awaitingDepot} label="ডিপো রিসিভিং বাকি" hint="ডেমো ফাইল থেকে এন্ট্রি, তারিখ এখনো দেওয়া হয়নি" />
         <Tile href="/jobs?status=SURVEY_LATE" alert n={data.counts.surveyLate} label="সার্ভে লেট" hint={`ডিপোর ${s.surveyDays} দিনের বেশি পরেও সার্ভে নেই`} />
         <Tile href="/jobs?status=BILL_LATE" alert n={data.counts.billLate} label="হিসাব লেট" hint={`সার্ভের ${s.billDays} দিন পরেও হিসাব নেই`} />
         <Tile href="/jobs?status=OVERDUE" alert n={data.counts.overdue} label="ওভারডিউ" hint={`জমার ${s.releaseDays} দিনেও রিলিজ হয়নি`} />
-        <Tile href="/jobs?status=OPEN" n={data.counts.open} label="চলমান জব" hint="রিলিজ এখনো বাকি" />
+        <Tile href="/jobs?status=OPEN" n={data.counts.open} label="চলমান জব" hint="ডিপো রিসিভিং পাওয়া, রিলিজ বাকি" />
       </section>
 
       <Card>
@@ -135,6 +164,20 @@ export default function DashboardPage() {
           <span className="text-sm text-muted">{data.attention.length}টা জব লাল</span>
         </div>
         {data.attention.length ? <JobTable jobs={data.attention} /> : <Empty>কোনো জব লাল নেই। সব সময়মতো চলছে।</Empty>}
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-lg font-bold">ডিপো রিসিভিং পাওয়া যায়নি</h2>
+          <span className="text-sm text-muted">
+            ডেমো ফাইল থেকে এন্ট্রি · {data.awaitingDepot.length}টা জব · মোট জবের হিসাবে ধরা হয়নি
+          </span>
+        </div>
+        {data.awaitingDepot.length ? (
+          <JobTable jobs={data.awaitingDepot} />
+        ) : (
+          <Empty>সব জবে ডিপো রিসিভিং তারিখ দেওয়া আছে।</Empty>
+        )}
       </section>
     </div>
   );

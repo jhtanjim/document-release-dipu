@@ -16,6 +16,7 @@ const STATUS = [
   { value: "SURVEY_LATE", label: "সার্ভে লেট" },
   { value: "BILL_LATE", label: "হিসাব লেট" },
   { value: "OVERDUE", label: "ওভারডিউ" },
+  { value: "NO_DEPOT", label: "ডিপো রিসিভিং বাকি" },
   { value: "PENDING_BILL", label: "হিসাব আসেনি" },
   { value: "OPEN", label: "চলমান" },
   { value: "RELEASED", label: "রিলিজড" },

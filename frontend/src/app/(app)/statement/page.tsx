@@ -23,10 +23,12 @@ function StatementInner() {
   const pathname = usePathname();
   const importerId = sp.get("importerId") ?? "";
   const agentId = sp.get("agentId") ?? "";
-  const set = (p: { importerId?: string; agentId?: string }) =>
-    router.replace(`${pathname}${qs({ importerId, agentId, ...p })}`, { scroll: false });
+  const released = sp.get("released") ?? "";
+  const set = (p: { importerId?: string; agentId?: string; released?: string }) =>
+    router.replace(`${pathname}${qs({ importerId, agentId, released, ...p })}`, { scroll: false });
+  const includeReleased = released === "1";
 
-  const { data, error, loading, reload } = useApi<Statement>(`/reports/statement${qs({ importerId, agentId })}`);
+  const { data, error, loading, reload } = useApi<Statement>(`/reports/statement${qs({ importerId, agentId, includeReleased })}`);
   if (error) return <ErrorBox message={error} onRetry={reload} />;
   if (!data) return <Loading />;
 
@@ -44,11 +46,11 @@ function StatementInner() {
     <div className="flex flex-col gap-5">
       <PageHeader
         title={`স্টেটমেন্ট · ${[impName ?? "All Jobs", agName].filter(Boolean).join(" · ")}`}
-        subtitle={`তারিখ ${fd(data.today)} · ${totals.jobs}টা জব`}
+        subtitle={`তারিখ ${fd(data.today)} · ${totals.jobs}টা জব · ${includeReleased ? "রিলিজ হওয়া জবসহ" : "শুধু রিলিজ বাকি জব"}`}
         actions={
           <>
             <a
-              href={`/api/reports/statement.xlsx${qs({ importerId, agentId })}`}
+              href={`/api/reports/statement.xlsx${qs({ importerId, agentId, includeReleased })}`}
               className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold hover:border-accent"
             >
               <Download className="size-4" aria-hidden /> Excel ডাউনলোড
@@ -61,7 +63,8 @@ function StatementInner() {
       />
 
       <Guide
-        id="statement"
+        id="statement-v2"
+        note="স্টেটমেন্টে শুধু সেই জব আসে যার সার্ভে রিপোর্টের তারিখ দেওয়া আছে। রিলিজ বা ফাইনাল সেটেলমেন্ট হয়ে যাওয়া জব নিজে থেকে লুকিয়ে যায়, তবে সব তথ্য সেভ থাকে। দেখতে চাইলে নিচের ঘরে টিক দিন।"
         steps={[
           "উপরের টেবিলে দেখবেন কোন ইম্পোর্টারের কোন শিপিং এজেন্টে কয়টা জব আছে। কোনো সংখ্যায় চাপলে নিচের স্টেটমেন্ট শুধু সেই ইম্পোর্টার আর এজেন্টের জব দেখাবে।",
           "অথবা নিচের বাটন দিয়ে আলাদা করে ইম্পোর্টার আর এজেন্ট বাছাই করুন। \"All Jobs\" আর \"সব এজেন্ট\" চাপলে সবার স্টেটমেন্ট আসবে।",
@@ -146,6 +149,10 @@ function StatementInner() {
           onChange={(v) => set({ agentId: v })}
           options={[{ value: "", label: "সব এজেন্ট" }, ...matrix.agents.map((a) => ({ value: String(a.id), label: a.name }))]}
         />
+        <label className="flex items-center gap-2 text-sm text-muted">
+          <input type="checkbox" checked={includeReleased} onChange={(e) => set({ released: e.target.checked ? "1" : "" })} />
+          রিলিজ হওয়া জবও দেখান (সাধারণত লুকানো থাকে)
+        </label>
       </div>
 
       <Card className={`grid gap-3 sm:grid-cols-3 ${loading ? "opacity-60" : ""}`}>

@@ -5,7 +5,6 @@ import ExcelJS from 'exceljs';
 import type { Response } from 'express';
 import type { JobView } from '../common/job-view';
 import { JobsModule, JobsService } from '../jobs/jobs.module';
-import { PrismaService } from '../prisma/prisma.module';
 
 const toInt = ({ value }: { value: unknown }) =>
   value ? Number(value) : undefined;
@@ -20,7 +19,18 @@ class DashboardQuery {
 class StatementQuery {
   @IsOptional() @Transform(toInt) @IsInt() importerId?: number;
   @IsOptional() @Transform(toInt) @IsInt() agentId?: number;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  includeReleased?: boolean;
 }
+
+/**
+ * A job belongs on the statement once its survey report has arrived (the agent's bill follows from
+ * there). Released jobs drop off unless asked for; they stay in the database and the job list.
+ */
+const onStatement = (j: JobView, includeReleased?: boolean) =>
+  j.surveyReceivedAt !== null && (includeReleased || j.releasedAt === null);
 
 const FLAG_BN: Record<string, string> = {
   SURVEY_LATE: 'সার্ভে লেট',
@@ -28,7 +38,7 @@ const FLAG_BN: Record<string, string> = {
   OVERDUE: 'ওভারডিউ',
 };
 const STAGE_BN: Record<string, string> = {
-  NEW: 'নতুন',
+  NEW: 'ডিপো রিসিভিং বাকি',
   DEPOT: 'ডিপো রিসিভড',
   SURVEY: 'সার্ভে এসেছে',
   WITH_AGENT: 'এজেন্টের কাছে',
@@ -75,10 +85,7 @@ function byImporter(items: JobView[]) {
 
 @Controller('reports')
 export class ReportsController {
-  constructor(
-    private jobs: JobsService,
-    private prisma: PrismaService,
-  ) {}
+  constructor(private jobs: JobsService) {}
 
   @Get('dashboard')
   async dashboard(@Query() q: DashboardQuery) {
@@ -92,6 +99,10 @@ export class ReportsController {
     const plus = money.filter((j) => j.balance! > 0);
     const minus = money.filter((j) => j.balance! < 0);
     const worst = (j: JobView) => Math.max(...j.flags.map((f) => f.days));
+    // A job is counted from the day its depot receiving date is entered; jobs typed in
+    // ahead of that (from the demo file) wait in their own list.
+    const received = items.filter((j) => j.depotReceivedAt !== null);
+    const awaitingDepot = items.filter((j) => j.depotReceivedAt === null);
     return {
       today,
       settings,
@@ -99,9 +110,13 @@ export class ReportsController {
         surveyLate: has('SURVEY_LATE'),
         billLate: has('BILL_LATE'),
         overdue: has('OVERDUE'),
-        open: items.filter((j) => !j.releasedAt).length,
-        total: items.length,
+        open: received.filter((j) => !j.releasedAt).length,
+        total: received.length,
+        awaitingDepot: awaitingDepot.length,
       },
+      awaitingDepot: awaitingDepot.sort((a, b) =>
+        a.createdAt.localeCompare(b.createdAt),
+      ),
       plusTotal: plus.reduce((a, j) => a + j.balance!, 0),
       minusTotal: minus.reduce((a, j) => a + j.balance!, 0),
       plusByImporter: byImporter(plus),
@@ -112,53 +127,65 @@ export class ReportsController {
     };
   }
 
+  /** Every job that belongs on the statement, before the importer/agent filter. */
+  private async statementPool(q: StatementQuery) {
+    const { today, items } = await this.jobs.list();
+    return {
+      today,
+      pool: items.filter((j) => onStatement(j, q.includeReleased)),
+    };
+  }
+
   private async statementData(q: StatementQuery) {
-    const { today, items } = await this.jobs.list({
-      importerId: q.importerId,
-      agentId: q.agentId,
-    });
-    items.sort(
-      (a, b) =>
-        a.importer.name.localeCompare(b.importer.name) ||
-        (a.depotReceivedAt ?? '').localeCompare(b.depotReceivedAt ?? ''),
-    );
-    return { today, items };
+    const { today, pool } = await this.statementPool(q);
+    const items = pool
+      .filter(
+        (j) =>
+          (!q.importerId || j.importer.id === q.importerId) &&
+          (!q.agentId || j.agent.id === q.agentId),
+      )
+      .sort(
+        (a, b) =>
+          a.importer.name.localeCompare(b.importer.name) ||
+          (a.depotReceivedAt ?? '').localeCompare(b.depotReceivedAt ?? ''),
+      );
+    return { today, pool, items };
   }
 
   @Get('statement')
   async statement(@Query() q: StatementQuery) {
-    const { today, items } = await this.statementData(q);
-    // The importer × shipping agent count table always covers every job, so it doubles as the filter.
-    const groups = await this.prisma.job.groupBy({
-      by: ['importerId', 'agentId'],
-      _count: { _all: true },
-    });
-    const impIds = [...new Set(groups.map((g) => g.importerId))];
-    const agIds = [...new Set(groups.map((g) => g.agentId))];
-    const [importers, agents] = await Promise.all([
-      this.prisma.importer.findMany({
-        where: { id: { in: impIds } },
-        select: { id: true, name: true },
-        orderBy: { name: 'asc' },
-      }),
-      this.prisma.shippingAgent.findMany({
-        where: { id: { in: agIds } },
-        select: { id: true, name: true },
-        orderBy: { name: 'asc' },
-      }),
-    ]);
+    const { today, pool, items } = await this.statementData(q);
+    // The importer × shipping agent count table covers the whole statement, so it doubles as the filter.
+    const cells = new Map<
+      string,
+      { importerId: number; agentId: number; count: number }
+    >();
+    const importers = new Map<number, string>();
+    const agents = new Map<number, string>();
+    for (const j of pool) {
+      importers.set(j.importer.id, j.importer.name);
+      agents.set(j.agent.id, j.agent.name);
+      const key = `${j.importer.id}:${j.agent.id}`;
+      const c = cells.get(key) ?? {
+        importerId: j.importer.id,
+        agentId: j.agent.id,
+        count: 0,
+      };
+      c.count++;
+      cells.set(key, c);
+    }
+    const named = (m: Map<number, string>) =>
+      [...m]
+        .map(([id, name]) => ({ id, name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
     return {
       today,
       items,
       totals: totals(items),
       matrix: {
-        importers,
-        agents,
-        cells: groups.map((g) => ({
-          importerId: g.importerId,
-          agentId: g.agentId,
-          count: g._count._all,
-        })),
+        importers: named(importers),
+        agents: named(agents),
+        cells: [...cells.values()],
       },
     };
   }

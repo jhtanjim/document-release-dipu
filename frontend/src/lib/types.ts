@@ -92,7 +92,8 @@ export interface GroupSum {
 export interface Dashboard {
   today: string;
   settings: Settings;
-  counts: { surveyLate: number; billLate: number; overdue: number; open: number; total: number };
+  counts: { surveyLate: number; billLate: number; overdue: number; open: number; total: number; awaitingDepot: number };
+  awaitingDepot: Job[];
   plusTotal: number;
   minusTotal: number;
   plusByImporter: GroupSum[];
