@@ -47,3 +47,8 @@
 
 - GitHub-এ push করলে Vercel আর Render নিজে থেকেই নতুন ভার্সন তোলে।
 - ডাটাবেজের গঠন বদলালে লোকালি `npm run db:migrate -- --name <কী বদলালেন>` চালিয়ে `backend/prisma/migrations` সহ push করুন; Render-এর build-এ `prisma migrate deploy` সেটা লাইভ ডাটাবেজে বসাবে।
+
+## Vercel-এ (এখন যেভাবে চলছে)
+
+- Backend: `guarantee-release-api` (Root `backend`), Frontend: `guarantee-release-app` (Root `frontend`, `API_URL` = backend লিংক)। ডাটাবেজ Vercel Storage → Neon (প্রিফিক্স `DATABASE`)।
+- প্রতিটা backend deploy-এ migration, seed আর `reset-admin` চলে: Vercel-এর `ADMIN_EMAIL`/`ADMIN_PASSWORD` অনুযায়ী সুপার অ্যাডমিন ঠিক করা হয়। তাই সুপার অ্যাডমিনের ইমেইল বা পাসওয়ার্ড Vercel-এর Environment Variables থেকে বদলে backend আবার deploy করুন; অ্যাপের ভেতর থেকে বদলালে পরের deploy-তে ফিরে যাবে।
