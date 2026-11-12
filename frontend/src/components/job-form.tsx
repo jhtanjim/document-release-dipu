@@ -318,7 +318,7 @@ export function JobForm({ job, onSaved }: { job?: Job; onSaved?: (j: Job) => voi
             <input id="note" className={inputCls} value={f.note} onChange={(e) => set("note")(e.target.value)} />
           </Field>
         </div>
-        <div className="mt-4 flex flex-wrap gap-x-8 gap-y-2 rounded-xl bg-sunk px-4 py-3" aria-live="polite">
+        <div className="mt-4 flex flex-wrap gap-x-8 gap-y-2 rounded-md bg-sunk px-4 py-3" aria-live="polite">
           <span>
             {t("সিকিউরিটি মানি", "Security money")}: <b className="num">{tk(security)}</b>
           </span>
@@ -336,7 +336,7 @@ export function JobForm({ job, onSaved }: { job?: Job; onSaved?: (j: Job) => voi
       </Card>
 
       {serverError && (
-        <p className="rounded-xl bg-crit-bg px-4 py-3 font-semibold text-crit" role="alert">
+        <p className="rounded-md bg-crit-bg px-4 py-3 font-semibold text-crit" role="alert">
           {serverError}
         </p>
       )}

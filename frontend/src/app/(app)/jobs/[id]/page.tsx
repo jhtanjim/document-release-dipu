@@ -107,7 +107,7 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
         </div>
       </Card>
 
-      <details className="group rounded-xl border border-line bg-surface shadow-card">
+      <details className="group rounded-md border border-line bg-surface">
         <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3.5 font-semibold sm:px-5">
           <Pencil className="size-4 text-accent" aria-hidden />
           {t("সব তথ্য এডিট করুন", "Edit all details")}

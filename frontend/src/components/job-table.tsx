@@ -22,7 +22,7 @@ export function JobTable({ jobs, showImporter = true }: { jobs: Job[]; showImpor
         <li key={j.id}>
           <Link
             href={`/jobs/${j.id}`}
-            className={`block rounded-xl border bg-surface p-4 shadow-card ${j.flags.length ? "border-crit/50 border-l-4 border-l-crit" : "border-line"}`}
+            className={`block rounded-md border bg-surface p-4 ${j.flags.length ? "border-crit/50 border-l-4 border-l-crit" : "border-line"}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -47,7 +47,7 @@ export function JobTable({ jobs, showImporter = true }: { jobs: Job[]; showImpor
         </li>
       ))}
     </ul>
-    <div className="hidden overflow-x-auto rounded-xl border border-line bg-surface shadow-card md:block">
+    <div className="hidden overflow-x-auto rounded-md border border-line bg-surface md:block">
       <table className="w-full border-collapse text-[14.5px]">
         <thead>
           <tr>

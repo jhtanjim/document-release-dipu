@@ -22,11 +22,10 @@ export class SettingsService {
   constructor(private prisma: PrismaService) {}
 
   async get() {
-    const s = await this.prisma.setting.upsert({
-      where: { id: 1 },
-      update: {},
-      create: { id: 1 },
-    });
+    // A plain read on every request; the row is only created the first time.
+    const s =
+      (await this.prisma.setting.findUnique({ where: { id: 1 } })) ??
+      (await this.prisma.setting.create({ data: { id: 1 } }));
     return {
       defaultRate: s.defaultRate,
       surveyDays: s.surveyDays,

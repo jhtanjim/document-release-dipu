@@ -282,7 +282,7 @@ function UsersTab() {
       {quota && (
         <Card className={`flex flex-wrap items-center gap-4 ${full ? "border-warn/50" : ""}`}>
           <div className="flex items-center gap-3">
-            <span className={`num grid size-14 place-items-center rounded-xl text-xl font-bold ${full ? "bg-warn-bg text-warn" : "bg-accent-soft text-accent"}`}>
+            <span className={`num grid size-14 place-items-center rounded-md text-xl font-bold ${full ? "bg-warn-bg text-warn" : "bg-accent-soft text-accent"}`}>
               {quota.used}/{quota.limit}
             </span>
             <div>
@@ -376,7 +376,7 @@ function UsersTab() {
         </Card>
       )}
       {err && (
-        <p className="rounded-xl bg-crit-bg px-4 py-3 font-semibold text-crit" role="alert">
+        <p className="rounded-md bg-crit-bg px-4 py-3 font-semibold text-crit" role="alert">
           {err}
         </p>
       )}
@@ -536,7 +536,7 @@ function SubscriptionTab() {
   return (
     <div className="flex flex-col gap-4">
       <Card className="flex flex-wrap items-center gap-5">
-        <span className={`grid size-16 place-items-center rounded-xl ${tone.box}`}>
+        <span className={`grid size-16 place-items-center rounded-md ${tone.box}`}>
           <CalendarClock className="size-8" aria-hidden />
         </span>
         <div className="min-w-0">
@@ -556,7 +556,7 @@ function SubscriptionTab() {
 
       <Card className="flex flex-col gap-4">
         <h2 className="font-bold">{t("সাবস্ক্রিপশনের সেটিং", "Subscription settings")}</h2>
-        <label className="flex items-start gap-3 rounded-xl border border-line p-4">
+        <label className="flex items-start gap-3 rounded-md border border-line p-4">
           <input type="checkbox" className="mt-1 size-5 accent-[var(--accent)]" checked={f.autoRenew} onChange={(e) => setF({ ...f, autoRenew: e.target.checked })} />
           <span>
             <b>{t("অটো-রিনিউ", "Auto-renew")}</b>

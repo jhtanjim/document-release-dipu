@@ -30,7 +30,7 @@ export function Balance({ value }: { value: number | null }) {
   const { t } = useLang();
   if (value === null)
     return (
-      <span className="inline-block whitespace-nowrap rounded-md bg-crit-bg px-2 py-0.5 text-[13px] font-semibold text-crit">
+      <span className="inline-block whitespace-nowrap rounded-sm bg-crit-bg px-2 py-0.5 text-[13px] font-semibold text-crit">
         {t("Pending · হিসাব আসেনি", "Pending · no bill yet")}
       </span>
     );

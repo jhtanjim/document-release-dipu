@@ -42,7 +42,7 @@ export function useLang() {
 export function LangSwitch() {
   const { lang, setLang } = useLang();
   return (
-    <div className="flex rounded-full border border-line bg-sunk p-0.5" role="group" aria-label="Language / ভাষা">
+    <div className="flex rounded-md border border-line bg-sunk p-0.5" role="group" aria-label="Language / ভাষা">
       {(
         [
           ["bn", "বাংলা"],
@@ -54,8 +54,8 @@ export function LangSwitch() {
           type="button"
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
-          className={`rounded-full px-2.5 py-1 text-[12.5px] font-semibold transition ${
-            lang === l ? "bg-surface text-ink shadow-card" : "text-muted hover:text-ink"
+          className={`rounded px-2.5 py-1 text-[12.5px] font-semibold transition ${
+            lang === l ? "bg-surface text-ink" : "text-muted hover:text-ink"
           }`}
         >
           {label}

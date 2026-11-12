@@ -2,7 +2,6 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Ship } from "lucide-react";
 import { api } from "@/lib/api";
 import { LangSwitch, useLang } from "@/lib/i18n";
 import { Button, Field, inputCls } from "@/components/ui";
@@ -61,14 +60,12 @@ export default function LoginPage() {
   const { t } = useLang();
   return (
     <div className="grid min-h-screen place-items-center px-4 py-10">
-      <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6 shadow-card sm:p-8">
+      <div className="w-full max-w-sm rounded-md border border-line bg-surface p-6 sm:p-8">
         <div className="mb-5 flex justify-end">
           <LangSwitch />
         </div>
         <div className="mb-6 flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl bg-accent text-accent-ink">
-            <Ship className="size-6" aria-hidden />
-          </span>
+          <span className="h-10 w-3 rounded-sm bg-accent" aria-hidden />
           <div>
             <h1 className="text-xl font-bold">{t("গারান্টি রিলিজ ট্র্যাকার", "Guarantee Release Tracker")}</h1>
             <p className="text-sm text-muted">{t("চালিয়ে যেতে লগইন করুন", "Log in to continue")}</p>

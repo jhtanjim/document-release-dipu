@@ -88,7 +88,7 @@ function StatementInner() {
           <span className="text-[13px] text-muted">{t("সংখ্যায় ক্লিক করলে নিচের স্টেটমেন্ট ফিল্টার হবে", "Click a number to filter the statement below")}</span>
         </div>
         {matrix.importers.length ? (
-          <div className="overflow-x-auto rounded-xl border border-line bg-surface shadow-card">
+          <div className="overflow-x-auto rounded-md border border-line bg-surface">
             <table className="w-full border-collapse text-[14.5px]">
               <thead>
                 <tr>
@@ -180,7 +180,7 @@ function StatementInner() {
       </Card>
 
       {items.length ? (
-        <div className="overflow-x-auto rounded-xl border border-line bg-surface shadow-card">
+        <div className="overflow-x-auto rounded-md border border-line bg-surface">
           <table className="w-full border-collapse text-[14.5px]">
             <thead>
               <tr>

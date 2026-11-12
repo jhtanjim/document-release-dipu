@@ -1,72 +1,76 @@
 @import "tailwindcss";
 
-/* Harbour office: a navy header band, clean white work area, one blue for actions,
-   green/amber/red only to say "money back", "extra cost", "late". */
+/* Office ledger: paper-toned page, charcoal sidebar, square-ish ruled boxes,
+   container orange only for the main action. Green / amber / red only for money and lateness. */
 :root {
-  --bg: #f4f6fa;
+  --bg: #f6f5f1;
   --surface: #ffffff;
-  --sunk: #f0f3f8;
-  --ink: #111c2d;
-  --muted: #5f6c7f;
-  --line: #e1e6ee;
-  --brand: #0f2744;
-  --brand-ink: #ffffff;
-  --accent: #2357d6;
+  --sunk: #f1efe9;
+  --ink: #1d2321;
+  --muted: #646e69;
+  --line: #e2dfd6;
+  --side: #1f2624;
+  --side-ink: #eef1ee;
+  --side-muted: #9da7a2;
+  --side-line: #2f3835;
+  --accent: #cf540e;
   --accent-ink: #ffffff;
-  --accent-soft: #eaf0fe;
-  --good: #137a3f;
-  --good-bg: #e7f6ed;
-  --warn: #b25b06;
-  --warn-bg: #fff3e0;
-  --crit: #c52222;
-  --crit-bg: #fdecec;
-  --shadow: 0 1px 2px rgba(15, 39, 68, 0.06), 0 2px 8px rgba(15, 39, 68, 0.04);
+  --accent-soft: #fcefe4;
+  --good: #2b7a31;
+  --good-bg: #e9f3e8;
+  --warn: #a35f00;
+  --warn-bg: #fbf1dd;
+  --crit: #c22a24;
+  --crit-bg: #fbeae8;
+  --shadow: none;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0b1220;
-    --surface: #131c2e;
-    --sunk: #0f1828;
-    --ink: #e7edf6;
-    --muted: #97a4b8;
-    --line: #243149;
-    --brand: #0a1426;
-    --brand-ink: #e7edf6;
-    --accent: #6f9bff;
-    --accent-ink: #0b1220;
-    --accent-soft: #182a4f;
-    --good: #5fd08e;
-    --good-bg: #143024;
-    --warn: #f3ad5b;
-    --warn-bg: #37260f;
-    --crit: #ff7c7c;
-    --crit-bg: #3a1c1f;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    --bg: #121615;
+    --surface: #1a201e;
+    --sunk: #161b19;
+    --ink: #e8ece9;
+    --muted: #9ba5a0;
+    --line: #2b3431;
+    --side: #0e1211;
+    --side-ink: #e8ece9;
+    --side-muted: #8d9792;
+    --side-line: #232b28;
+    --accent: #ef7a36;
+    --accent-ink: #1b1108;
+    --accent-soft: #382417;
+    --good: #6cc073;
+    --good-bg: #172a19;
+    --warn: #e7a744;
+    --warn-bg: #33280f;
+    --crit: #f27a70;
+    --crit-bg: #3a1c1a;
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #0b1220;
-  --surface: #131c2e;
-  --sunk: #0f1828;
-  --ink: #e7edf6;
-  --muted: #97a4b8;
-  --line: #243149;
-  --brand: #0a1426;
-  --brand-ink: #e7edf6;
-  --accent: #6f9bff;
-  --accent-ink: #0b1220;
-  --accent-soft: #182a4f;
-  --good: #5fd08e;
-  --good-bg: #143024;
-  --warn: #f3ad5b;
-  --warn-bg: #37260f;
-  --crit: #ff7c7c;
-  --crit-bg: #3a1c1f;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --bg: #121615;
+  --surface: #1a201e;
+  --sunk: #161b19;
+  --ink: #e8ece9;
+  --muted: #9ba5a0;
+  --line: #2b3431;
+  --side: #0e1211;
+  --side-ink: #e8ece9;
+  --side-muted: #8d9792;
+  --side-line: #232b28;
+  --accent: #ef7a36;
+  --accent-ink: #1b1108;
+  --accent-soft: #382417;
+  --good: #6cc073;
+  --good-bg: #172a19;
+  --warn: #e7a744;
+  --warn-bg: #33280f;
+  --crit: #f27a70;
+  --crit-bg: #3a1c1a;
   color-scheme: dark;
 }
 
@@ -77,8 +81,10 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
-  --color-brand: var(--brand);
-  --color-brand-ink: var(--brand-ink);
+  --color-side: var(--side);
+  --color-side-ink: var(--side-ink);
+  --color-side-muted: var(--side-muted);
+  --color-side-line: var(--side-line);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
@@ -126,7 +132,7 @@ body {
   :root {
     --bg: #fff;
     --surface: #fff;
-    --sunk: #f2f4f6;
+    --sunk: #f2f2f2;
     --ink: #000;
     --muted: #444;
     --line: #ccc;
