@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { AlertTriangle, Info, Lightbulb, Loader2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, Info, Lightbulb, Loader2 } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -38,13 +39,14 @@ export function Button({
 export function ConfirmButton({
   onConfirm,
   children,
-  confirmText = "নিশ্চিত? আবার চাপুন",
+  confirmText,
   ...props
 }: { onConfirm: () => void; children: ReactNode; confirmText?: string } & Omit<
   Parameters<typeof Button>[0],
   "onClick" | "children"
 >) {
   const [armed, setArmed] = useState(false);
+  const { t } = useLang();
   return (
     <Button
       variant="danger"
@@ -52,7 +54,7 @@ export function ConfirmButton({
       onClick={() => (armed ? onConfirm() : setArmed(true))}
       onBlur={() => setArmed(false)}
     >
-      {armed ? confirmText : children}
+      {armed ? (confirmText ?? t("নিশ্চিত? আবার চাপুন", "Sure? Press again")) : children}
     </Button>
   );
 }
@@ -62,31 +64,44 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
 }
 
 /**
- * "How to use this page": always open at the top of every page, each step a numbered card
- * so a first-time user can follow along without reading a paragraph.
+ * "How to use this page": a single line that opens into numbered steps when clicked,
+ * so it is there when someone needs it without filling the screen.
  */
 export function Guide({ steps, note }: { id?: string; steps: ReactNode[]; note?: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const { t } = useLang();
   return (
-    <section className="no-print rounded-2xl border border-accent/25 bg-accent-soft/60 p-4 sm:p-5" aria-label="কীভাবে ব্যবহার করবেন">
-      <h2 className="mb-3 flex items-center gap-2 text-[15px] font-bold text-accent">
-        <span className="grid size-7 place-items-center rounded-lg bg-accent text-accent-ink">
-          <Lightbulb className="size-4" aria-hidden />
+    <section className="no-print rounded-2xl border border-accent/25 bg-accent-soft/50">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[14.5px] font-semibold text-accent"
+      >
+        <span className="grid size-6 place-items-center rounded-lg bg-accent text-accent-ink">
+          <Lightbulb className="size-3.5" aria-hidden />
         </span>
-        কীভাবে ব্যবহার করবেন
-      </h2>
-      <ol className="grid gap-2 sm:grid-cols-2">
-        {steps.map((s, i) => (
-          <li key={i} className="flex gap-3 rounded-xl bg-surface/80 p-3 text-[14.5px] leading-relaxed">
-            <span className="num grid size-6 shrink-0 place-items-center rounded-full bg-accent text-[12px] font-bold text-accent-ink">{i + 1}</span>
-            <span>{s}</span>
-          </li>
-        ))}
-      </ol>
-      {note && (
-        <p className="mt-3 flex gap-2 text-[13.5px] text-muted">
-          <Info className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
-          <span>{note}</span>
-        </p>
+        {t("এই পাতা কীভাবে ব্যবহার করবেন?", "How do I use this page?")}
+        <span className="ml-auto text-[13px] font-normal">{open ? t("বন্ধ করুন", "Close") : t("দেখুন", "Show")}</span>
+        <ChevronDown className={`size-4 transition ${open ? "rotate-180" : ""}`} aria-hidden />
+      </button>
+      {open && (
+        <div className="px-4 pb-4">
+          <ol className="grid gap-2 sm:grid-cols-2">
+            {steps.map((s, i) => (
+              <li key={i} className="flex gap-3 rounded-xl bg-surface/80 p-3 text-[14.5px] leading-relaxed">
+                <span className="num grid size-6 shrink-0 place-items-center rounded-full bg-accent text-[12px] font-bold text-accent-ink">{i + 1}</span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ol>
+          {note && (
+            <p className="mt-3 flex gap-2 text-[13.5px] text-muted">
+              <Info className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+              <span>{note}</span>
+            </p>
+          )}
+        </div>
       )}
     </section>
   );
@@ -153,22 +168,24 @@ export function Badge({ tone = "neutral", children }: { tone?: keyof typeof tone
   );
 }
 
-export function Loading({ label = "লোড হচ্ছে…" }: { label?: string }) {
+export function Loading({ label }: { label?: string }) {
+  const { t } = useLang();
   return (
     <div className="flex items-center gap-2 py-10 text-muted" role="status">
-      <Loader2 className="size-5 animate-spin" aria-hidden /> {label}
+      <Loader2 className="size-5 animate-spin" aria-hidden /> {label ?? t("লোড হচ্ছে…", "Loading…")}
     </div>
   );
 }
 
 export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const { t } = useLang();
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-xl border border-crit bg-crit-bg p-4 text-crit" role="alert">
       <AlertTriangle className="size-5 shrink-0" aria-hidden />
       <span className="font-semibold">{message}</span>
       {onRetry && (
         <Button size="sm" onClick={onRetry} className="ml-auto">
-          আবার চেষ্টা করুন
+          {t("আবার চেষ্টা করুন", "Try again")}
         </Button>
       )}
     </div>

@@ -1,11 +1,5 @@
 export type Role = "SUPER_ADMIN" | "ADMIN" | "OPERATOR";
 
-export const ROLE_LABEL: Record<Role, string> = {
-  SUPER_ADMIN: "সুপার অ্যাডমিন",
-  ADMIN: "অ্যাডমিন",
-  OPERATOR: "অপারেটর",
-};
-
 /** Admin rights: rates, rules, deleting jobs. The super admin has them too. */
 export const isAdmin = (role?: Role) => role === "ADMIN" || role === "SUPER_ADMIN";
 export type FlagType = "SURVEY_LATE" | "BILL_LATE" | "OVERDUE";
@@ -123,6 +117,8 @@ export interface UserRow {
 export interface UserItem extends UserRow {
   operatorLimit: number;
   createdById: number | null;
+  /** The admin an operator works under */
+  createdBy: { id: number; name: string } | null;
   /** Super admin view only: operators this account has opened */
   operatorsUsed?: number;
 }

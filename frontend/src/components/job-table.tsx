@@ -6,12 +6,14 @@ import type { Job } from "@/lib/types";
 import { fd, tk } from "@/lib/format";
 import { Balance, JobStatus } from "./status";
 import { nextStepLabel } from "./job-progress";
+import { useLang } from "@/lib/i18n";
 
 export const th = "whitespace-nowrap bg-sunk px-3 py-2.5 text-left text-[12.5px] font-semibold text-muted";
 export const td = "whitespace-nowrap border-t border-line px-3 py-2.5 align-middle";
 
 export function JobTable({ jobs, showImporter = true }: { jobs: Job[]; showImporter?: boolean }) {
   const router = useRouter();
+  const { lang, t } = useLang();
   return (
     <>
     {/* Phones: one card per job, the facts people check first */}
@@ -34,12 +36,12 @@ export function JobTable({ jobs, showImporter = true }: { jobs: Job[]; showImpor
               </div>
               <div className="shrink-0 text-right">
                 <Balance value={j.balance} />
-                <p className="num mt-0.5 text-[12px] text-muted">সিকিউরিটি {tk(j.security)}</p>
+                <p className="num mt-0.5 text-[12px] text-muted">{t("সিকিউরিটি", "Security")} {tk(j.security)}</p>
               </div>
             </div>
             <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
               <JobStatus job={j} />
-              <span className="text-[12.5px] font-semibold text-accent">{nextStepLabel(j)} →</span>
+              <span className="text-[12.5px] font-semibold text-accent">{nextStepLabel(j, lang)} →</span>
             </div>
           </Link>
         </li>
@@ -49,18 +51,18 @@ export function JobTable({ jobs, showImporter = true }: { jobs: Job[]; showImpor
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
-            <th className={th}>জব নং</th>
-            <th className={th}>C নং</th>
-            {showImporter && <th className={th}>ইম্পোর্টার</th>}
-            <th className={th}>শিপিং এজেন্ট</th>
-            <th className={th}>কন্টেইনার</th>
-            <th className={`${th} text-right`}>সিকিউরিটি</th>
-            <th className={th}>ডিপো</th>
-            <th className={th}>সার্ভে</th>
-            <th className={th}>এজেন্টে জমা</th>
-            <th className={th}>হিসাব</th>
-            <th className={`${th} text-right`}>ব্যালেন্স</th>
-            <th className={th}>অবস্থা</th>
+            <th className={th}>{t("জব নং", "Job No")}</th>
+            <th className={th}>{t("C নং", "C No")}</th>
+            {showImporter && <th className={th}>{t("ইম্পোর্টার", "Importer")}</th>}
+            <th className={th}>{t("শিপিং এজেন্ট", "Shipping agent")}</th>
+            <th className={th}>{t("কন্টেইনার", "Containers")}</th>
+            <th className={`${th} text-right`}>{t("সিকিউরিটি", "Security")}</th>
+            <th className={th}>{t("ডিপো", "Depot")}</th>
+            <th className={th}>{t("সার্ভে", "Survey")}</th>
+            <th className={th}>{t("এজেন্টে জমা", "To agent")}</th>
+            <th className={th}>{t("হিসাব", "Bill")}</th>
+            <th className={`${th} text-right`}>{t("ব্যালেন্স", "Balance")}</th>
+            <th className={th}>{t("অবস্থা", "Status")}</th>
           </tr>
         </thead>
         <tbody>

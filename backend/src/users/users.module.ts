@@ -46,9 +46,12 @@ class CreateUserDto {
   password!: string;
   @IsIn(ASSIGNABLE, { message: ROLE_MSG })
   role!: Assignable;
+  /** Operators only: the admin this operator works under (the super admin must choose one) */
+  @IsOptional() @IsInt() adminId?: number;
 }
 
 class UpdateUserDto {
+  @IsOptional() @IsInt() adminId?: number;
   @IsOptional() @IsInt() @Min(0) @Max(100) operatorLimit?: number;
   @IsOptional() @IsString() @MinLength(1) @MaxLength(100) name?: string;
   @IsOptional() @IsIn(ASSIGNABLE, { message: ROLE_MSG }) role?: Assignable;
@@ -67,7 +70,10 @@ const select = {
   active: true,
   operatorLimit: true,
   createdById: true,
+  createdBy: { select: { id: true, name: true } },
 };
+
+const CHOOSE_ADMIN = 'অপারেটর কোন অ্যাডমিনের অধীনে থাকবেন, সেটা বাছাই করুন।';
 
 const OPERATORS_ONLY =
   'অ্যাডমিন শুধু নিজের খোলা অপারেটর অ্যাকাউন্ট সামলাতে পারেন।';
@@ -92,6 +98,15 @@ export class UsersController {
       }),
     ]);
     return { limit: me?.operatorLimit ?? 0, used };
+  }
+
+  /** Every operator works under exactly one active admin. */
+  private async admin(id: number | undefined) {
+    if (!id) throw new BadRequestException(CHOOSE_ADMIN);
+    const a = await this.prisma.user.findUnique({ where: { id } });
+    if (!a || a.role !== 'ADMIN' || !a.active)
+      throw new BadRequestException('বাছাই করা অ্যাডমিন পাওয়া যায়নি।');
+    return a.id;
   }
 
   @Get()
@@ -130,6 +145,13 @@ export class UsersController {
           `আপনি ${q.limit}টা অপারেটর অ্যাকাউন্ট খুলতে পারেন, সবগুলো খোলা হয়ে গেছে। আরও খুলতে সুপার অ্যাডমিনের অনুমতি চান।`,
         );
     }
+    // An operator belongs to the admin who opens it, or to the admin the super admin picks.
+    const owner =
+      dto.role === 'OPERATOR'
+        ? me.role === 'SUPER_ADMIN'
+          ? await this.admin(dto.adminId)
+          : me.id
+        : me.id;
     const email = dto.email.toLowerCase().trim();
     if (await this.prisma.user.findUnique({ where: { email } }))
       throw new ConflictException('এই ইমেইলে আগেই একজন ইউজার আছেন।');
@@ -138,7 +160,7 @@ export class UsersController {
         name: dto.name.trim(),
         email,
         role: dto.role,
-        createdById: me.id,
+        createdById: owner,
         passwordHash: await bcrypt.hash(dto.password, 10),
       },
       select,
@@ -158,7 +180,8 @@ export class UsersController {
       (target.role !== 'OPERATOR' ||
         target.createdById !== me.id ||
         (dto.role && dto.role !== 'OPERATOR') ||
-        dto.operatorLimit !== undefined)
+        dto.operatorLimit !== undefined ||
+        dto.adminId !== undefined)
     )
       throw new ForbiddenException(OPERATORS_ONLY);
     if (target.role === 'SUPER_ADMIN' && (dto.active === false || dto.role))
@@ -167,6 +190,13 @@ export class UsersController {
       );
     if (id === me.id && dto.active === false)
       throw new BadRequestException('নিজেকে বন্ধ করা যাবে না।');
+    // Moving an operator to another admin, or turning an admin into an operator, needs an admin to report to.
+    let createdById: number | undefined;
+    const becomesOperator = (dto.role ?? target.role) === 'OPERATOR';
+    if (dto.adminId !== undefined && becomesOperator)
+      createdById = await this.admin(dto.adminId);
+    else if (dto.role === 'OPERATOR' && target.role !== 'OPERATOR')
+      createdById = await this.admin(undefined);
     return this.prisma.user.update({
       where: { id },
       data: {
@@ -174,6 +204,7 @@ export class UsersController {
         role: dto.role,
         operatorLimit: dto.operatorLimit,
         active: dto.active,
+        createdById,
         passwordHash: dto.password
           ? await bcrypt.hash(dto.password, 10)
           : undefined,

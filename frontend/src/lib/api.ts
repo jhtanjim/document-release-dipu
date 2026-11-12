@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { currentLang } from "./i18n";
 
 export class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -15,7 +16,7 @@ export async function api<T>(path: string, init: Init = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...rest,
     method: rest.method ?? (json !== undefined ? "POST" : "GET"),
-    headers: { ...(json !== undefined ? { "Content-Type": "application/json" } : {}), ...rest.headers },
+    headers: { "x-lang": currentLang(), ...(json !== undefined ? { "Content-Type": "application/json" } : {}), ...rest.headers },
     body: json !== undefined ? JSON.stringify(json) : undefined,
     credentials: "include",
     cache: "no-store",
@@ -32,7 +33,7 @@ export async function api<T>(path: string, init: Init = {}): Promise<T> {
   }
   if (!res.ok) {
     const m = (data as { message?: string | string[] } | null)?.message;
-    const msg = Array.isArray(m) ? m.join(" ") : m || "সার্ভারে সমস্যা হয়েছে। একটু পরে আবার চেষ্টা করুন।";
+    const msg = Array.isArray(m) ? m.join(" ") : m || (currentLang() === "en" ? "Something went wrong on the server. Please try again shortly." : "সার্ভারে সমস্যা হয়েছে। একটু পরে আবার চেষ্টা করুন।");
     throw new ApiError(msg, res.status);
   }
   return data as T;

@@ -1,6 +1,6 @@
 import { Controller, Get, Module, Query, Res } from '@nestjs/common';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional } from 'class-validator';
 import ExcelJS from 'exceljs';
 import type { Response } from 'express';
 import type { JobView } from '../common/job-view';
@@ -23,6 +23,7 @@ class StatementQuery {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   includeReleased?: boolean;
+  @IsOptional() @IsIn(['bn', 'en']) lang?: 'bn' | 'en';
 }
 
 /**
@@ -44,6 +45,19 @@ const STAGE_BN: Record<string, string> = {
   WITH_AGENT: 'এজেন্টের কাছে',
   BILLED: 'হিসাব এসেছে',
   RELEASED: 'রিলিজড',
+};
+const FLAG_EN: Record<string, string> = {
+  SURVEY_LATE: 'Survey late',
+  BILL_LATE: 'Bill late',
+  OVERDUE: 'Overdue',
+};
+const STAGE_EN: Record<string, string> = {
+  NEW: 'Awaiting depot receiving',
+  DEPOT: 'Depot received',
+  SURVEY: 'Survey received',
+  WITH_AGENT: 'With agent',
+  BILLED: 'Bill received',
+  RELEASED: 'Released',
 };
 const dmy = (s: string | null) =>
   s ? `${s.slice(8, 10)}-${s.slice(5, 7)}-${s.slice(0, 4)}` : '';
@@ -194,22 +208,26 @@ export class ReportsController {
   async statementXlsx(@Query() q: StatementQuery, @Res() res: Response) {
     const { today, items } = await this.statementData(q);
     const t = totals(items);
+    const en = q.lang === 'en';
+    const L = (bn: string, eng: string) => (en ? eng : bn);
+    const FLAG = en ? FLAG_EN : FLAG_BN;
+    const STAGE = en ? STAGE_EN : STAGE_BN;
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Statement');
     ws.columns = [
-      { header: 'জব নং', key: 'jobNo', width: 14 },
-      { header: 'C নং', key: 'cNumber', width: 10 },
-      { header: 'ইম্পোর্টার', key: 'importer', width: 20 },
-      { header: 'শিপিং এজেন্ট', key: 'agent', width: 28 },
-      { header: 'কন্টেইনার', key: 'containers', width: 10 },
-      { header: 'জব রিসিভ', key: 'depot', width: 12 },
-      { header: 'সার্ভে', key: 'survey', width: 12 },
-      { header: 'এজেন্টে জমা', key: 'submit', width: 12 },
-      { header: 'হিসাব জমা', key: 'bill', width: 12 },
-      { header: 'সিকিউরিটি', key: 'security', width: 12 },
-      { header: 'আসল খরচ', key: 'cost', width: 12 },
-      { header: 'অ্যামাউন্ট', key: 'amount', width: 14 },
-      { header: 'অবস্থা', key: 'status', width: 26 },
+      { header: L('জব নং', 'Job No'), key: 'jobNo', width: 14 },
+      { header: L('C নং', 'C No'), key: 'cNumber', width: 10 },
+      { header: L('ইম্পোর্টার', 'Importer'), key: 'importer', width: 20 },
+      { header: L('শিপিং এজেন্ট', 'Shipping agent'), key: 'agent', width: 28 },
+      { header: L('কন্টেইনার', 'Containers'), key: 'containers', width: 10 },
+      { header: L('জব রিসিভ', 'Job received'), key: 'depot', width: 12 },
+      { header: L('সার্ভে', 'Survey'), key: 'survey', width: 12 },
+      { header: L('এজেন্টে জমা', 'To agent'), key: 'submit', width: 12 },
+      { header: L('হিসাব জমা', 'Bill date'), key: 'bill', width: 12 },
+      { header: L('সিকিউরিটি', 'Security'), key: 'security', width: 12 },
+      { header: L('আসল খরচ', 'Actual cost'), key: 'cost', width: 12 },
+      { header: L('অ্যামাউন্ট', 'Amount'), key: 'amount', width: 14 },
+      { header: L('অবস্থা', 'Status'), key: 'status', width: 26 },
     ];
     ws.getRow(1).font = { bold: true };
     ws.views = [{ state: 'frozen', ySplit: 1 }];
@@ -226,10 +244,13 @@ export class ReportsController {
         bill: dmy(j.agentBillAt),
         security: j.security,
         cost: j.actualCost ?? '',
-        amount: j.balance ?? 'Pending (হিসাব আসেনি)',
+        amount:
+          j.balance ?? L('Pending (হিসাব আসেনি)', 'Pending (no bill yet)'),
         status: j.flags.length
-          ? j.flags.map((f) => `${FLAG_BN[f.type]} ${f.days} দিন`).join(', ')
-          : STAGE_BN[j.stage] + (j.releasedAt ? ` ${dmy(j.releasedAt)}` : ''),
+          ? j.flags
+              .map((f) => `${FLAG[f.type]} ${f.days} ${L('দিন', 'days')}`)
+              .join(', ')
+          : STAGE[j.stage] + (j.releasedAt ? ` ${dmy(j.releasedAt)}` : ''),
       });
       const amount = row.getCell('amount');
       amount.font = {
@@ -248,14 +269,23 @@ export class ReportsController {
     for (const key of ['security', 'cost', 'amount'])
       ws.getColumn(key).numFmt = '#,##0;-#,##0';
     ws.addRow({});
-    ws.addRow({ agent: 'মোট প্লাস (ফেরত পাবো)', amount: t.plus }).font = {
+    ws.addRow({
+      agent: L('মোট প্লাস (ফেরত পাবো)', 'Total plus (refund due)'),
+      amount: t.plus,
+    }).font = {
       bold: true,
     };
-    ws.addRow({ agent: 'মোট মাইনাস (বাড়তি খরচ)', amount: t.minus }).font = {
+    ws.addRow({
+      agent: L('মোট মাইনাস (বাড়তি খরচ)', 'Total minus (extra cost)'),
+      amount: t.minus,
+    }).font = {
       bold: true,
     };
-    ws.addRow({ agent: 'নেট', amount: t.net }).font = { bold: true };
-    ws.addRow({ agent: 'হিসাব আসেনি', amount: `${t.pending}টা জব` }).font = {
+    ws.addRow({ agent: L('নেট', 'Net'), amount: t.net }).font = { bold: true };
+    ws.addRow({
+      agent: L('হিসাব আসেনি', 'No bill yet'),
+      amount: L(`${t.pending}টা জব`, `${t.pending} jobs`),
+    }).font = {
       bold: true,
     };
 

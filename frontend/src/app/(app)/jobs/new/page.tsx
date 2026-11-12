@@ -1,22 +1,28 @@
+"use client";
+
 import { JobForm } from "@/components/job-form";
 import { Guide, PageHeader } from "@/components/ui";
+import { useLang } from "@/lib/i18n";
 
 export default function NewJobPage() {
+  const { t } = useLang();
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
-      <PageHeader title="নতুন জব" subtitle="ডেমো ফাইল বা ডিপো রিসিভিং ফাইল হাতে এলে এখানে এন্ট্রি দিন।" />
+      <PageHeader
+        title={t("নতুন জব", "New job")}
+        subtitle={t("ডেমো ফাইল বা ডিপো রিসিভিং ফাইল হাতে এলে এখানে এন্ট্রি দিন।", "Enter a job here when a demo or depot receiving file arrives.")}
+      />
       <Guide
-        id="job-new-v2"
         steps={[
-          "ধাপ ১ পূরণ করুন: জব নম্বর, C নম্বর, ইম্পোর্টার, শিপিং এজেন্ট আর কন্টেইনার সংখ্যা।",
-          "ইম্পোর্টার বা এজেন্ট লিস্টে না থাকলে পাশের \"+\" চেপে নতুন নাম যোগ করুন। ইম্পোর্টারের নাম ইংরেজিতে লিখবেন।",
-          "রেট নিজে থেকে বসে যায় (প্রতি কন্টেইনার)। এই জবে আলাদা রেট লাগলে বদলে দিন।",
-          "ডিপো রিসিভিং ফাইল এসে থাকলে তারিখ দিন। শুধু ডেমো ফাইল এলে ডিপো রিসিভিং আর সার্ভের ঘর খালি রাখুন।",
-          "\"জব সেভ করুন\" চাপুন। বাকি তারিখগুলো পরে জব খুলে আপডেট করবেন।",
+          t("ধাপ ১ পূরণ করুন: জব নম্বর, C নম্বর, ইম্পোর্টার, শিপিং এজেন্ট আর কন্টেইনার।", "Fill step 1: job number, C number, importer, shipping agent and containers."),
+          t("লিস্টে নাম না থাকলে পাশের \"+\" চেপে যোগ করুন। ইম্পোর্টারের নাম ইংরেজিতে লিখবেন।", "If a name is missing, press \"+\" to add it. Write importer names in English."),
+          t("শুধু ডেমো ফাইল এলে ডিপো রিসিভিং আর সার্ভের ঘর খালি রাখুন।", "For a demo file only, leave the depot receiving and survey dates empty."),
+          t("\"জব সেভ করুন\" চাপুন। বাকি তারিখ পরে জব খুলে আপডেট করবেন।", "Press \"Save job\". Add the other dates later from the job page."),
         ]}
-        note={
-          "ডিপো রিসিভিং তারিখ না দেওয়া জব \"ডিপো রিসিভিং বাকি\" ঘরে জমা থাকে, মোট জবের হিসাবে ধরা হয় না। সার্ভে রিপোর্টের তারিখ না দেওয়া পর্যন্ত জবটা স্টেটমেন্টে ওঠে না।"
-        }
+        note={t(
+          "ডিপো রিসিভিং তারিখ ছাড়া জব মোট জবে গোনা হয় না; সার্ভের তারিখ ছাড়া স্টেটমেন্টে ওঠে না।",
+          "A job without a depot receiving date isn't counted in the total; without a survey date it isn't on the statement.",
+        )}
       />
       <JobForm />
     </div>
