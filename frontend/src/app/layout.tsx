@@ -1,14 +1,6 @@
 import type { Metadata } from "next";
-import { Anek_Bangla } from "next/font/google";
 import "./globals.css";
 import { LangProvider } from "@/lib/i18n";
-
-// One family for Bangla, English and numbers: clear at small sizes, friendly at large ones.
-const anek = Anek_Bangla({
-  subsets: ["bengali", "latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-anek",
-});
 
 export const metadata: Metadata = {
   title: "গারান্টি রিলিজ · Guarantee Release",
@@ -23,8 +15,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="bn" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* Anek Bangla: one family for Bangla, English and numbers. Loaded by the browser, so the build never depends on it. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;500;600;700&display=swap" />
       </head>
-      <body className={`${anek.variable} antialiased`}>
+      <body className="antialiased">
         <LangProvider>{children}</LangProvider>
       </body>
     </html>

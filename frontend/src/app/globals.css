@@ -89,8 +89,8 @@
   --color-crit: var(--crit);
   --color-crit-bg: var(--crit-bg);
   --shadow-card: var(--shadow);
-  --font-sans: var(--font-anek), "Noto Sans Bengali", "Nirmala UI", system-ui, sans-serif;
-  --font-mono: var(--font-anek), system-ui, sans-serif;
+  --font-sans: "Anek Bangla", "Noto Sans Bengali", "Nirmala UI", system-ui, sans-serif;
+  --font-mono: "Anek Bangla", system-ui, sans-serif;
 }
 
 body {
