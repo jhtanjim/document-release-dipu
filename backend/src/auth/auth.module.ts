@@ -14,7 +14,13 @@ import * as bcrypt from 'bcryptjs';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 import type { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.module';
-import { type AuthUser, COOKIE, CurrentUser, Public } from './decorators';
+import {
+  AllowExpired,
+  type AuthUser,
+  COOKIE,
+  CurrentUser,
+  Public,
+} from './decorators';
 
 const SESSION_DAYS = 7;
 
@@ -84,6 +90,7 @@ export class AuthController {
     return { ok: true };
   }
 
+  @AllowExpired()
   @Get('me')
   me(@CurrentUser() user: AuthUser) {
     return user;

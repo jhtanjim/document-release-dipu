@@ -10,6 +10,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ReportsModule } from './reports/reports.module';
 import { SettingsModule } from './settings/settings.module';
 import { UsersModule } from './users/users.module';
+import { SubscriptionModule } from './subscription/subscription.module';
+import { OperatorRequestsModule } from './users/operator-requests.module';
 
 @Controller('health')
 class HealthController {
@@ -24,6 +26,8 @@ class HealthController {
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    SubscriptionModule,
+    OperatorRequestsModule,
     AuthModule,
     UsersModule,
     CatalogModule,

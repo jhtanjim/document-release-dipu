@@ -1,24 +1,67 @@
 @import "tailwindcss";
 
-/* Port-office ledger: cool steel neutrals, one teal accent, red/green/amber only for meaning */
+/* Port-office ledger: cool steel neutrals, one teal accent; red/green/amber only for meaning.
+   Light is the default; dark follows the system or the switch in the header. */
 :root {
-  /* One light theme: white work surfaces on a soft grey page, teal for actions */
-  --bg: #f5f7f9;
+  --bg: #f4f6f8;
   --surface: #ffffff;
   --sunk: #eef2f5;
-  --ink: #17252e;
+  --ink: #15232c;
   --muted: #5b6b75;
-  --line: #dfe5ea;
+  --line: #dde4e9;
   --accent: #0d6e7b;
   --accent-ink: #ffffff;
-  --accent-soft: #e3f2f4;
+  --accent-soft: #e2f1f3;
   --good: #1b7a43;
-  --good-bg: #e4f4ea;
+  --good-bg: #e3f4e9;
   --warn: #a7510b;
-  --warn-bg: #fcefe3;
+  --warn-bg: #fcefe2;
   --crit: #c0262d;
-  --crit-bg: #fdecec;
+  --crit-bg: #fdebeb;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.04);
   color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1418;
+    --surface: #151f25;
+    --sunk: #101a1f;
+    --ink: #e4ecf0;
+    --muted: #98a8b1;
+    --line: #26343c;
+    --accent: #4fb6c3;
+    --accent-ink: #0a1418;
+    --accent-soft: #15323a;
+    --good: #66cc8d;
+    --good-bg: #153022;
+    --warn: #f1a65f;
+    --warn-bg: #36240f;
+    --crit: #ff7a7f;
+    --crit-bg: #3b1b1d;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0d1418;
+  --surface: #151f25;
+  --sunk: #101a1f;
+  --ink: #e4ecf0;
+  --muted: #98a8b1;
+  --line: #26343c;
+  --accent: #4fb6c3;
+  --accent-ink: #0a1418;
+  --accent-soft: #15323a;
+  --good: #66cc8d;
+  --good-bg: #153022;
+  --warn: #f1a65f;
+  --warn-bg: #36240f;
+  --crit: #ff7a7f;
+  --crit-bg: #3b1b1d;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -37,6 +80,7 @@
   --color-warn-bg: var(--warn-bg);
   --color-crit: var(--crit);
   --color-crit-bg: var(--crit-bg);
+  --shadow-card: var(--shadow);
   --font-sans: var(--font-bangla), "Noto Sans Bengali", "Nirmala UI", system-ui, sans-serif;
   --font-mono: var(--font-plex), ui-monospace, Consolas, monospace;
 }
@@ -45,8 +89,8 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 15.5px;
+  line-height: 1.55;
 }
 
 .num {
@@ -60,7 +104,23 @@ body {
   outline-offset: 2px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
 @media print {
-  .no-print { display: none !important; }
-  body { background: #fff; color: #000; }
+  .no-print {
+    display: none !important;
+  }
+  :root {
+    --bg: #fff;
+    --surface: #fff;
+    --sunk: #f2f4f6;
+    --ink: #000;
+    --muted: #444;
+    --line: #ccc;
+  }
 }

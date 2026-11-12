@@ -14,9 +14,15 @@ export const metadata: Metadata = {
   description: "জব, সার্ভে, শিপিং এজেন্টের হিসাব আর গারান্টি রিলিজ ট্র্যাকিং",
 };
 
+// Applies the saved light/dark choice before the first paint, so the page never flashes.
+const themeScript = `try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="bn">
+    <html lang="bn" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className={`${bangla.variable} ${plex.variable} antialiased`}>{children}</body>
     </html>
   );

@@ -11,6 +11,11 @@ export const ROLES = 'roles';
 /** Route needs no login. */
 export const Public = () => SetMetadata(IS_PUBLIC, true);
 
+export const ALLOW_EXPIRED = 'allowExpired';
+
+/** Route stays open after the subscription has run out (who am I, subscription status). */
+export const AllowExpired = () => SetMetadata(ALLOW_EXPIRED, true);
+
 /** Route needs one of these roles (on top of being logged in). */
 export const Roles = (...roles: Role[]) => SetMetadata(ROLES, roles);
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { AlertTriangle, ChevronDown, Lightbulb, Loader2 } from "lucide-react";
+import { useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { AlertTriangle, Info, Lightbulb, Loader2 } from "lucide-react";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -58,54 +58,35 @@ export function ConfirmButton({
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-xl border border-line bg-surface p-4 shadow-[0_1px_2px_rgba(16,24,40,0.05)] sm:p-5 ${className}`}>
-      {children}
-    </section>
-  );
+  return <section className={`rounded-2xl border border-line bg-surface p-4 shadow-card sm:p-5 ${className}`}>{children}</section>;
 }
 
 /**
- * "How to use this page" box shown at the top of every page. Open by default;
- * once someone closes it, it stays closed for them on that page.
+ * "How to use this page": always open at the top of every page, each step a numbered card
+ * so a first-time user can follow along without reading a paragraph.
  */
-export function Guide({ id, steps, note }: { id: string; steps: ReactNode[]; note?: ReactNode }) {
-  const key = `guide:${id}`;
-  const [open, setOpen] = useState(true);
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(key) === "closed") setOpen(false);
-    } catch {}
-  }, [key]);
-  const toggle = () =>
-    setOpen((o) => {
-      try {
-        localStorage.setItem(key, o ? "closed" : "open");
-      } catch {}
-      return !o;
-    });
+export function Guide({ steps, note }: { id?: string; steps: ReactNode[]; note?: ReactNode }) {
   return (
-    <section className="no-print rounded-xl border border-accent/25 bg-accent-soft/70">
-      <button
-        type="button"
-        onClick={toggle}
-        aria-expanded={open}
-        className="flex w-full items-center gap-2 px-4 py-3 text-left text-[15px] font-semibold text-accent"
-      >
-        <Lightbulb className="size-[18px] shrink-0" aria-hidden />
+    <section className="no-print rounded-2xl border border-accent/25 bg-accent-soft/60 p-4 sm:p-5" aria-label="কীভাবে ব্যবহার করবেন">
+      <h2 className="mb-3 flex items-center gap-2 text-[15px] font-bold text-accent">
+        <span className="grid size-7 place-items-center rounded-lg bg-accent text-accent-ink">
+          <Lightbulb className="size-4" aria-hidden />
+        </span>
         কীভাবে ব্যবহার করবেন
-        <span className="ml-auto text-[13px] font-normal">{open ? "লুকান" : "দেখুন"}</span>
-        <ChevronDown className={`size-4 transition ${open ? "rotate-180" : ""}`} aria-hidden />
-      </button>
-      {open && (
-        <div className="px-4 pb-4">
-          <ol className="ml-5 list-decimal space-y-1.5 text-[14.5px] leading-relaxed text-ink marker:font-semibold marker:text-accent">
-            {steps.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ol>
-          {note && <p className="mt-3 border-t border-accent/20 pt-2 text-[13.5px] text-muted">{note}</p>}
-        </div>
+      </h2>
+      <ol className="grid gap-2 sm:grid-cols-2">
+        {steps.map((s, i) => (
+          <li key={i} className="flex gap-3 rounded-xl bg-surface/80 p-3 text-[14.5px] leading-relaxed">
+            <span className="num grid size-6 shrink-0 place-items-center rounded-full bg-accent text-[12px] font-bold text-accent-ink">{i + 1}</span>
+            <span>{s}</span>
+          </li>
+        ))}
+      </ol>
+      {note && (
+        <p className="mt-3 flex gap-2 text-[13.5px] text-muted">
+          <Info className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+          <span>{note}</span>
+        </p>
       )}
     </section>
   );
@@ -195,7 +176,7 @@ export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () =
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="rounded-xl border border-dashed border-line bg-surface p-8 text-center text-muted">{children}</div>;
+  return <div className="rounded-2xl border border-dashed border-line bg-surface p-8 text-center text-muted">{children}</div>;
 }
 
 export function Segmented<T extends string>({

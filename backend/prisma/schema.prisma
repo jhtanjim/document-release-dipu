@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
   /// Direct (non-pooled) connection for migrations; Neon on Vercel sets both.
   directUrl = env("DATABASE_URL_UNPOOLED")
@@ -23,15 +23,63 @@ enum ContainerSize {
 }
 
 model User {
-  id           Int        @id @default(autoincrement())
-  name         String
-  email        String     @unique
-  passwordHash String
-  role         Role       @default(OPERATOR)
-  active       Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  auditLogs    AuditLog[]
+  id               Int               @id @default(autoincrement())
+  name             String
+  email            String            @unique
+  passwordHash     String
+  role             Role              @default(OPERATOR)
+  active           Boolean           @default(true)
+  /// Admins only: how many operator accounts this admin may open. Raised by the super admin.
+  operatorLimit    Int               @default(1)
+  createdById      Int?
+  createdBy        User?             @relation("CreatedUsers", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers     User[]            @relation("CreatedUsers")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  auditLogs        AuditLog[]
+  operatorRequests OperatorRequest[]
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// An admin asking the super admin for permission to open one more operator account.
+model OperatorRequest {
+  id        Int           @id @default(autoincrement())
+  adminId   Int
+  admin     User          @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  note      String?
+  status    RequestStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  decidedAt DateTime?
+
+  @@index([status])
+}
+
+/// Single row (id = 1): the software subscription, managed by the super admin.
+/// When it runs out without auto-renew, everyone except the super admin is locked out.
+model Subscription {
+  id           Int      @id @default(1)
+  plan         String   @default("মাসিক")
+  periodMonths Int      @default(1)
+  /// Taka per period, shown for reference
+  amount       Int?
+  startedAt    DateTime @db.Date
+  endsAt       DateTime @db.Date
+  autoRenew    Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+}
+
+model SubscriptionEvent {
+  id        Int      @id @default(autoincrement())
+  /// RENEW_AUTO, RENEW_MANUAL or UPDATE
+  type      String
+  fromDate  DateTime @db.Date
+  toDate    DateTime @db.Date
+  createdAt DateTime @default(now())
 }
 
 model Importer {

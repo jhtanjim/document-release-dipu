@@ -119,3 +119,39 @@ export interface UserRow {
   role: Role;
   active: boolean;
 }
+
+export interface UserItem extends UserRow {
+  operatorLimit: number;
+  createdById: number | null;
+  /** Super admin view only: operators this account has opened */
+  operatorsUsed?: number;
+}
+
+export interface UsersResponse {
+  items: UserItem[];
+  /** Admin view only: how many operators they may open and have opened */
+  quota: { limit: number; used: number } | null;
+}
+
+export interface OperatorRequest {
+  id: number;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  note: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+  admin: { id: number; name: string; email: string; operatorLimit: number };
+}
+
+export interface Subscription {
+  plan: string;
+  periodMonths: number;
+  amount: number | null;
+  startedAt: string | null;
+  endsAt: string;
+  autoRenew: boolean;
+  daysLeft: number;
+  status: "ACTIVE" | "EXPIRING" | "EXPIRED";
+  active: boolean;
+  today: string;
+  events?: { id: number; type: "RENEW_AUTO" | "RENEW_MANUAL" | "UPDATE"; fromDate: string; toDate: string; createdAt: string }[];
+}

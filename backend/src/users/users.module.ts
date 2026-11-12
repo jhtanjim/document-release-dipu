@@ -17,7 +17,10 @@ import {
   IsBoolean,
   IsEmail,
   IsIn,
+  IsInt,
   IsOptional,
+  Max,
+  Min,
   IsString,
   MaxLength,
   MinLength,
@@ -46,6 +49,7 @@ class CreateUserDto {
 }
 
 class UpdateUserDto {
+  @IsOptional() @IsInt() @Min(0) @Max(100) operatorLimit?: number;
   @IsOptional() @IsString() @MinLength(1) @MaxLength(100) name?: string;
   @IsOptional() @IsIn(ASSIGNABLE, { message: ROLE_MSG }) role?: Assignable;
   @IsOptional() @IsBoolean() active?: boolean;
@@ -55,33 +59,77 @@ class UpdateUserDto {
   password?: string;
 }
 
-const select = { id: true, name: true, email: true, role: true, active: true };
+const select = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  active: true,
+  operatorLimit: true,
+  createdById: true,
+};
 
 const OPERATORS_ONLY =
-  'অ্যাডমিন শুধু অপারেটর অ্যাকাউন্ট খুলতে ও সামলাতে পারেন।';
+  'অ্যাডমিন শুধু নিজের খোলা অপারেটর অ্যাকাউন্ট সামলাতে পারেন।';
 
 /**
- * The super admin manages every account. An admin manages operator accounts only:
- * they see operators, can open new ones, reset their passwords and disable them.
+ * The super admin manages every account. An admin opens and manages their own operators only,
+ * up to their operator limit (one to start with); more needs the super admin's permission.
  */
 @Roles('ADMIN')
 @Controller('users')
 export class UsersController {
   constructor(private prisma: PrismaService) {}
 
+  private async quota(adminId: number) {
+    const [me, used] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id: adminId },
+        select: { operatorLimit: true },
+      }),
+      this.prisma.user.count({
+        where: { createdById: adminId, role: 'OPERATOR' },
+      }),
+    ]);
+    return { limit: me?.operatorLimit ?? 0, used };
+  }
+
   @Get()
-  list(@CurrentUser() me: AuthUser) {
-    return this.prisma.user.findMany({
-      where: me.role === 'SUPER_ADMIN' ? {} : { role: 'OPERATOR' },
+  async list(@CurrentUser() me: AuthUser) {
+    if (me.role === 'SUPER_ADMIN') {
+      const users = await this.prisma.user.findMany({
+        select: {
+          ...select,
+          _count: { select: { createdUsers: { where: { role: 'OPERATOR' } } } },
+        },
+        orderBy: [{ active: 'desc' }, { name: 'asc' }],
+      });
+      return {
+        items: users.map(({ _count, ...u }) => ({
+          ...u,
+          operatorsUsed: _count.createdUsers,
+        })),
+        quota: null,
+      };
+    }
+    const items = await this.prisma.user.findMany({
+      where: { role: 'OPERATOR', createdById: me.id },
       select,
       orderBy: [{ active: 'desc' }, { name: 'asc' }],
     });
+    return { items, quota: await this.quota(me.id) };
   }
 
   @Post()
   async create(@Body() dto: CreateUserDto, @CurrentUser() me: AuthUser) {
-    if (me.role !== 'SUPER_ADMIN' && dto.role !== 'OPERATOR')
-      throw new ForbiddenException(OPERATORS_ONLY);
+    if (me.role !== 'SUPER_ADMIN') {
+      if (dto.role !== 'OPERATOR') throw new ForbiddenException(OPERATORS_ONLY);
+      const q = await this.quota(me.id);
+      if (q.used >= q.limit)
+        throw new ForbiddenException(
+          `আপনি ${q.limit}টা অপারেটর অ্যাকাউন্ট খুলতে পারেন, সবগুলো খোলা হয়ে গেছে। আরও খুলতে সুপার অ্যাডমিনের অনুমতি চান।`,
+        );
+    }
     const email = dto.email.toLowerCase().trim();
     if (await this.prisma.user.findUnique({ where: { email } }))
       throw new ConflictException('এই ইমেইলে আগেই একজন ইউজার আছেন।');
@@ -90,6 +138,7 @@ export class UsersController {
         name: dto.name.trim(),
         email,
         role: dto.role,
+        createdById: me.id,
         passwordHash: await bcrypt.hash(dto.password, 10),
       },
       select,
@@ -106,7 +155,10 @@ export class UsersController {
     if (!target) throw new NotFoundException('ইউজার পাওয়া যায়নি।');
     if (
       me.role !== 'SUPER_ADMIN' &&
-      (target.role !== 'OPERATOR' || (dto.role && dto.role !== 'OPERATOR'))
+      (target.role !== 'OPERATOR' ||
+        target.createdById !== me.id ||
+        (dto.role && dto.role !== 'OPERATOR') ||
+        dto.operatorLimit !== undefined)
     )
       throw new ForbiddenException(OPERATORS_ONLY);
     if (target.role === 'SUPER_ADMIN' && (dto.active === false || dto.role))
@@ -120,6 +172,7 @@ export class UsersController {
       data: {
         name: dto.name?.trim(),
         role: dto.role,
+        operatorLimit: dto.operatorLimit,
         active: dto.active,
         passwordHash: dto.password
           ? await bcrypt.hash(dto.password, 10)
