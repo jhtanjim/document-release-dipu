@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Plus } from "lucide-react";
 import { useApi } from "@/lib/api";
 import type { Agent, Importer, JobList } from "@/lib/types";
 import { qs } from "@/lib/format";
@@ -55,11 +53,6 @@ function JobsInner() {
           jobs.data
             ? t(`${jobs.data.items.length}টা জব · লাইনে ক্লিক করে খুলুন বা আপডেট করুন`, `${jobs.data.items.length} jobs · click a row to open or update it`)
             : undefined
-        }
-        actions={
-          <Link href="/jobs/new" className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-ink">
-            <Plus className="size-4" aria-hidden /> {t("নতুন জব", "New job")}
-          </Link>
         }
       />
 

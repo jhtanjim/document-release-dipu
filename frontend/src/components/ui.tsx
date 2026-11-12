@@ -8,7 +8,7 @@ type Variant = "primary" | "secondary" | "ghost" | "danger";
 
 const variants: Record<Variant, string> = {
   primary: "bg-accent text-accent-ink border-accent hover:brightness-110",
-  secondary: "bg-surface text-ink border-line hover:border-accent",
+  secondary: "bg-surface text-ink border-line hover:border-accent hover:text-accent",
   ghost: "bg-transparent text-ink border-transparent hover:bg-sunk",
   danger: "bg-transparent text-crit border-crit hover:bg-crit-bg",
 };
@@ -26,7 +26,7 @@ export function Button({
       {...props}
       disabled={props.disabled || loading}
       className={`inline-flex items-center justify-center gap-2 rounded-lg border font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${
-        size === "sm" ? "px-3 py-1 text-[13px]" : "px-4 py-2 text-sm"
+        size === "sm" ? "px-3 py-1.5 text-[13.5px]" : "px-4 py-2.5 text-[15px]"
       } ${variants[variant]} ${className}`}
     >
       {loading && <Loader2 className="size-4 animate-spin" aria-hidden />}
@@ -60,7 +60,7 @@ export function ConfirmButton({
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-line bg-surface p-4 shadow-card sm:p-5 ${className}`}>{children}</section>;
+  return <section className={`rounded-xl border border-line bg-surface p-5 shadow-card ${className}`}>{children}</section>;
 }
 
 /**
@@ -71,7 +71,7 @@ export function Guide({ steps, note }: { id?: string; steps: ReactNode[]; note?:
   const [open, setOpen] = useState(false);
   const { t } = useLang();
   return (
-    <section className="no-print rounded-2xl border border-accent/25 bg-accent-soft/50">
+    <section className="no-print rounded-xl border border-accent/20 bg-accent-soft/60">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -111,7 +111,7 @@ export function PageHeader({ title, subtitle, actions }: { title: ReactNode; sub
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="text-[22px] font-bold text-balance sm:text-[26px]">{title}</h1>
+        <h1 className="text-[24px] font-bold text-balance sm:text-[28px]">{title}</h1>
         {subtitle && <p className="mt-1 text-[14.5px] text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="no-print flex flex-wrap gap-2">{actions}</div>}
@@ -139,7 +139,7 @@ export function Field({
 }) {
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label htmlFor={htmlFor} className="text-[13px] font-semibold text-muted">
+      <label htmlFor={htmlFor} className="text-[14px] font-semibold text-ink/80">
         {label}
       </label>
       {children}
@@ -193,7 +193,7 @@ export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () =
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="rounded-2xl border border-dashed border-line bg-surface p-8 text-center text-muted">{children}</div>;
+  return <div className="rounded-xl border border-dashed border-line bg-surface p-8 text-center text-muted">{children}</div>;
 }
 
 export function Segmented<T extends string>({
@@ -209,15 +209,15 @@ export function Segmented<T extends string>({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={label}>
-      {label && <span className="mr-1 min-w-[90px] text-[12.5px] font-bold text-muted">{label}</span>}
+      {label && <span className="mr-1 min-w-[96px] text-[13.5px] font-semibold text-muted">{label}</span>}
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           aria-pressed={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`rounded-full border px-3 py-1 text-sm transition ${
-            value === o.value ? "border-ink bg-ink text-surface" : "border-line bg-surface hover:border-accent"
+          className={`rounded-full border px-3.5 py-1.5 text-[14px] font-medium transition ${
+            value === o.value ? "border-accent bg-accent text-accent-ink" : "border-line bg-surface hover:border-accent hover:text-accent"
           }`}
         >
           {o.label}

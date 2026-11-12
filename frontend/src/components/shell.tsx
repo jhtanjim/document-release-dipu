@@ -2,21 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import {
-  BarChart3,
-  CalendarClock,
-  ClipboardList,
-  FileSpreadsheet,
-  Lock,
-  LogOut,
-  Monitor,
-  Moon,
-  Plus,
-  Settings,
-  Ship,
-  Sun,
-} from "lucide-react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { CalendarClock, ChevronDown, Lock, LogOut, Monitor, Moon, Plus, Ship, Sun } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Me, OperatorRequest, Subscription } from "@/lib/types";
 import { ROLE_LABEL, fd } from "@/lib/format";
@@ -34,15 +21,17 @@ const RefreshCtx = createContext<() => void>(() => {});
 export const useShellRefresh = () => useContext(RefreshCtx);
 
 const NAV = [
-  { href: "/", bn: "ড্যাশবোর্ড", en: "Dashboard", hintBn: "আজকের অবস্থা", hintEn: "Today at a glance", icon: BarChart3 },
-  { href: "/jobs", bn: "সব জব", en: "All jobs", hintBn: "খুঁজুন ও আপডেট করুন", hintEn: "Find and update", icon: ClipboardList },
-  { href: "/statement", bn: "স্টেটমেন্ট", en: "Statement", hintBn: "ইম্পোর্টার ও এজেন্ট অনুযায়ী", hintEn: "By importer and agent", icon: FileSpreadsheet },
-  { href: "/settings", bn: "সেটিংস", en: "Settings", hintBn: "নিয়ম, লিস্ট, অ্যাকাউন্ট", hintEn: "Rules, lists, accounts", icon: Settings },
+  { href: "/", bn: "হোম", en: "Home" },
+  { href: "/jobs", bn: "সব জব", en: "Jobs" },
+  { href: "/statement", bn: "স্টেটমেন্ট", en: "Statement" },
+  { href: "/settings", bn: "সেটিংস", en: "Settings" },
 ];
 
 type ThemeChoice = "system" | "light" | "dark";
+const NEXT_THEME: Record<ThemeChoice, ThemeChoice> = { light: "dark", dark: "system", system: "light" };
 
-function ThemeSwitch() {
+/** One button that cycles light → dark → follow the computer. */
+function ThemeButton() {
   const { t } = useLang();
   const [theme, setTheme] = useState<ThemeChoice>("system");
   useEffect(() => {
@@ -51,7 +40,8 @@ function ThemeSwitch() {
       if (v === "light" || v === "dark") setTheme(v);
     } catch {}
   }, []);
-  const choose = (v: ThemeChoice) => {
+  const cycle = () => {
+    const v = NEXT_THEME[theme];
     setTheme(v);
     try {
       if (v === "system") {
@@ -63,28 +53,84 @@ function ThemeSwitch() {
       }
     } catch {}
   };
-  const options: { value: ThemeChoice; label: string; icon: typeof Sun }[] = [
-    { value: "light", label: t("সাদা", "Light"), icon: Sun },
-    { value: "dark", label: t("কালো", "Dark"), icon: Moon },
-    { value: "system", label: t("অটো", "Auto"), icon: Monitor },
-  ];
+  const Icon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;
+  const label = theme === "light" ? t("সাদা থিম", "Light theme") : theme === "dark" ? t("কালো থিম", "Dark theme") : t("কম্পিউটারের মতো", "Follow computer");
   return (
-    <div className="flex rounded-full border border-line bg-sunk p-0.5" role="group" aria-label={t("থিম", "Theme")}>
-      {options.map(({ value, label, icon: Icon }) => (
+    <button type="button" onClick={cycle} title={label} aria-label={label} className="grid size-9 place-items-center rounded-lg text-brand-ink/80 hover:bg-white/10 hover:text-brand-ink">
+      <Icon className="size-[18px]" aria-hidden />
+    </button>
+  );
+}
+
+/** Compact language switch for the dark header band. */
+function HeaderLang() {
+  const { lang, setLang } = useLang();
+  return (
+    <div className="flex rounded-lg bg-white/10 p-0.5 text-[13px] font-semibold" role="group" aria-label="Language / ভাষা">
+      {(
+        [
+          ["bn", "বাংলা"],
+          ["en", "EN"],
+        ] as const
+      ).map(([l, label]) => (
         <button
-          key={value}
+          key={l}
           type="button"
-          onClick={() => choose(value)}
-          aria-pressed={theme === value}
-          title={label}
-          className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[12.5px] font-semibold transition ${
-            theme === value ? "bg-surface text-ink shadow-card" : "text-muted hover:text-ink"
-          }`}
+          onClick={() => setLang(l)}
+          aria-pressed={lang === l}
+          className={`rounded-md px-2.5 py-1 ${lang === l ? "bg-white text-brand" : "text-brand-ink/80 hover:text-brand-ink"}`}
         >
-          <Icon className="size-3.5" aria-hidden />
-          <span className="hidden xl:inline">{label}</span>
+          {label}
         </button>
       ))}
+    </div>
+  );
+}
+
+function UserMenu({ me, sub, onLogout }: { me: Me; sub: Subscription; onLogout: () => void }) {
+  const { lang, t } = useLang();
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const close = (e: MouseEvent) => !box.current?.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+  return (
+    <div className="relative" ref={box}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 hover:bg-white/10"
+      >
+        <span className="grid size-8 place-items-center rounded-full bg-white/15 text-[15px] font-bold">{me.name.slice(0, 1)}</span>
+        <span className="hidden text-left leading-tight md:block">
+          <span className="block text-[14px] font-semibold">{me.name}</span>
+          <span className="block text-[12px] opacity-75">{ROLE_LABEL[lang][me.role]}</span>
+        </span>
+        <ChevronDown className="size-4 opacity-75" aria-hidden />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-xl border border-line bg-surface text-ink shadow-xl">
+          <div className="border-b border-line p-4">
+            <p className="font-semibold">{me.name}</p>
+            <p className="text-sm text-muted">{me.email}</p>
+            <p className="mt-1 text-sm text-muted">{ROLE_LABEL[lang][me.role]}</p>
+          </div>
+          <div className="flex items-center gap-2 border-b border-line px-4 py-3 text-sm">
+            <CalendarClock className={`size-4 ${sub.status === "ACTIVE" ? "text-good" : sub.status === "EXPIRING" ? "text-warn" : "text-crit"}`} aria-hidden />
+            <span>
+              {sub.status === "EXPIRED"
+                ? t("সাবস্ক্রিপশন শেষ", "Subscription expired")
+                : t(`সাবস্ক্রিপশন ${fd(sub.endsAt)} পর্যন্ত`, `Subscription until ${fd(sub.endsAt)}`)}
+            </span>
+          </div>
+          <button type="button" onClick={onLogout} className="flex w-full items-center gap-2 px-4 py-3 text-left font-semibold text-crit hover:bg-crit-bg">
+            <LogOut className="size-4" aria-hidden /> {t("লগআউট", "Log out")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -119,7 +165,7 @@ function LockScreen({ me, sub, onLogout }: { me: Me; sub: Subscription; onLogout
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { lang, t } = useLang();
+  const { t } = useLang();
   const [me, setMe] = useState<Me | null>(null);
   const [sub, setSub] = useState<Subscription | null>(null);
   const [pending, setPending] = useState(0);
@@ -162,153 +208,98 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
   if (!sub.active && me.role !== "SUPER_ADMIN") return <LockScreen me={me} sub={sub} onLogout={logout} />;
 
-  const today = new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "bn-BD", {
-    timeZone: "Asia/Dhaka",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(new Date());
   const showSubBanner = me.role !== "OPERATOR" && sub.status !== "ACTIVE";
+
+  const navLinks = (
+    <>
+      {NAV.map(({ href, bn, en }) => (
+        <Link
+          key={href}
+          href={href}
+          aria-current={active(href) ? "page" : undefined}
+          className={`relative shrink-0 rounded-lg px-3.5 py-2 text-[15px] font-semibold transition ${
+            active(href) ? "bg-white/15 text-brand-ink" : "text-brand-ink/75 hover:bg-white/10 hover:text-brand-ink"
+          }`}
+        >
+          {t(bn, en)}
+          {href === "/settings" && pending > 0 && (
+            <span className="ml-1.5 inline-grid min-w-5 place-items-center rounded-full bg-crit px-1.5 text-[11px] font-bold text-white" title={t("অনুমতির অনুরোধ", "Permission requests")}>
+              {pending}
+            </span>
+          )}
+        </Link>
+      ))}
+    </>
+  );
 
   return (
     <UserCtx.Provider value={me}>
       <ToastCtx.Provider value={showToast}>
         <RefreshCtx.Provider value={refresh}>
-          <div className="min-h-screen lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
-            {/* Sidebar (desktop) / top menu (phone) */}
-            <aside className="no-print sticky top-0 z-20 border-b border-line bg-surface lg:flex lg:h-screen lg:flex-col lg:border-b-0 lg:border-r">
-              <div className="flex items-center gap-3 px-4 py-3 lg:px-5 lg:py-5">
-                <span className="grid size-10 place-items-center rounded-xl bg-accent text-accent-ink shadow-card">
+          <header className="no-print sticky top-0 z-20 bg-brand text-brand-ink shadow-md">
+            <div className="mx-auto flex max-w-[1200px] items-center gap-3 px-4 py-2.5 sm:px-6">
+              <Link href="/" className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-lg bg-white text-brand">
                   <Ship className="size-5" aria-hidden />
                 </span>
-                <div className="min-w-0 leading-tight">
-                  <b className="block text-[16.5px]">{t("গারান্টি রিলিজ", "Guarantee Release")}</b>
-                  <small className="text-muted">{t("জব ও সিকিউরিটি মানি ট্র্যাকার", "Job and security money tracker")}</small>
-                </div>
-                <div className="ml-auto flex items-center gap-2 lg:hidden">
-                  <LangSwitch />
-                </div>
-              </div>
-              <nav className="flex gap-1 overflow-x-auto px-2 pb-2 lg:flex-col lg:gap-1.5 lg:px-3" aria-label={t("মেনু", "Menu")}>
-                {NAV.map(({ href, bn, en, hintBn, hintEn, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    aria-current={active(href) ? "page" : undefined}
-                    className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2 lg:py-2.5 ${
-                      active(href) ? "bg-accent text-accent-ink shadow-card" : "text-muted hover:bg-sunk hover:text-ink"
-                    }`}
-                  >
-                    <Icon className="size-[19px] shrink-0" aria-hidden />
-                    <span className="min-w-0 leading-tight">
-                      <span className="block text-[15px] font-semibold">{t(bn, en)}</span>
-                      <span className={`hidden text-[12px] lg:block ${active(href) ? "opacity-85" : "text-muted"}`}>{t(hintBn, hintEn)}</span>
-                    </span>
-                    {href === "/settings" && pending > 0 && (
-                      <span
-                        className="num ml-auto grid min-w-5 place-items-center rounded-full bg-crit px-1.5 text-[11px] font-bold text-white"
-                        title={t("অনুমতির অনুরোধ", "Permission requests")}
-                      >
-                        {pending}
-                      </span>
-                    )}
-                  </Link>
-                ))}
+                <span className="hidden leading-tight sm:block">
+                  <b className="block text-[16px]">{t("গারান্টি রিলিজ", "Guarantee Release")}</b>
+                  <span className="block text-[12px] opacity-70">{t("সিকিউরিটি মানি ট্র্যাকার", "Security money tracker")}</span>
+                </span>
+              </Link>
+              <nav className="ml-4 hidden items-center gap-1 lg:flex" aria-label={t("মেনু", "Menu")}>
+                {navLinks}
               </nav>
-              <div className="hidden px-3 pt-3 lg:block">
+              <div className="ml-auto flex items-center gap-2">
                 <Link
                   href="/jobs/new"
-                  className="flex items-center justify-center gap-2 rounded-xl bg-accent px-3 py-3 font-semibold text-accent-ink shadow-card hover:brightness-110"
+                  className="hidden items-center gap-1.5 rounded-lg bg-white px-3.5 py-2 text-[14.5px] font-bold text-brand shadow-sm hover:bg-white/90 sm:flex"
                 >
-                  <Plus className="size-5" aria-hidden /> {t("নতুন জব এন্ট্রি", "New job entry")}
+                  <Plus className="size-4" aria-hidden /> {t("নতুন জব", "New job")}
                 </Link>
+                <HeaderLang />
+                <ThemeButton />
+                <UserMenu me={me} sub={sub} onLogout={logout} />
               </div>
-
-              <div className="mt-auto hidden flex-col gap-3 border-t border-line p-4 lg:flex">
-                <Link
-                  href={me.role === "SUPER_ADMIN" ? "/settings?tab=subscription" : "#"}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] ${
-                    sub.status === "ACTIVE" ? "bg-good-bg text-good" : sub.status === "EXPIRING" ? "bg-warn-bg text-warn" : "bg-crit-bg text-crit"
-                  }`}
-                >
-                  <CalendarClock className="size-4 shrink-0" aria-hidden />
-                  <span className="leading-tight">
-                    <b className="block">
-                      {sub.status === "EXPIRED"
-                        ? t("সাবস্ক্রিপশন শেষ", "Subscription expired")
-                        : t(`সাবস্ক্রিপশন চালু · ${sub.daysLeft} দিন বাকি`, `Subscription active · ${sub.daysLeft} days left`)}
-                    </b>
-                    <span className="opacity-85">
-                      {t(`${fd(sub.endsAt)} পর্যন্ত`, `Until ${fd(sub.endsAt)}`)}
-                      {sub.autoRenew ? t(" · অটো-রিনিউ", " · auto-renew") : ""}
-                    </span>
-                  </span>
-                </Link>
-                <div className="flex items-center gap-3">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent-soft font-bold text-accent">{me.name.slice(0, 1)}</span>
-                  <div className="min-w-0 leading-tight">
-                    <p className="truncate font-semibold">{me.name}</p>
-                    <p className="truncate text-[12.5px] text-muted">{ROLE_LABEL[lang][me.role]}</p>
-                  </div>
-                  <button onClick={logout} className="ml-auto rounded-lg p-2 text-muted hover:bg-sunk hover:text-ink" title={t("লগআউট", "Log out")} aria-label={t("লগআউট", "Log out")}>
-                    <LogOut className="size-[18px]" aria-hidden />
-                  </button>
-                </div>
-              </div>
-            </aside>
-
-            <div className="min-w-0">
-              {/* Top bar: greeting, language and theme */}
-              <header className="no-print sticky top-0 z-10 flex items-center gap-3 border-b border-line bg-bg/85 px-4 py-2.5 backdrop-blur sm:px-6 lg:px-8">
-                <p className="hidden text-[14.5px] lg:block">
-                  {t("স্বাগতম", "Welcome")}, <b>{me.name}</b> <span className="text-muted">· {today}</span>
-                </p>
-                <div className="ml-auto flex items-center gap-2">
-                  <span className="hidden lg:block">
-                    <LangSwitch />
-                  </span>
-                  <ThemeSwitch />
-                  <button onClick={logout} className="rounded-lg p-2 text-muted hover:bg-sunk hover:text-ink lg:hidden" aria-label={t("লগআউট", "Log out")}>
-                    <LogOut className="size-[18px]" aria-hidden />
-                  </button>
-                </div>
-              </header>
-
-              <main className="mx-auto w-full min-w-0 max-w-[1240px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-                {showSubBanner && (
-                  <div
-                    className={`no-print mb-5 flex flex-wrap items-center gap-3 rounded-2xl border p-4 ${
-                      sub.status === "EXPIRED" ? "border-crit/50 bg-crit-bg text-crit" : "border-warn/50 bg-warn-bg text-warn"
-                    }`}
-                    role="status"
-                  >
-                    <CalendarClock className="size-5 shrink-0" aria-hidden />
-                    <p className="font-semibold">
-                      {sub.status === "EXPIRED"
-                        ? t(
-                            `সাবস্ক্রিপশনের মেয়াদ ${fd(sub.endsAt)} তারিখে শেষ হয়েছে। অন্যরা এখন লগইন করে কাজ করতে পারছেন না।`,
-                            `The subscription ended on ${fd(sub.endsAt)}. Others can't work until it is renewed.`,
-                          )
-                        : t(
-                            `সাবস্ক্রিপশন ${sub.daysLeft} দিন পর (${fd(sub.endsAt)}) শেষ হবে।${sub.autoRenew ? " অটো-রিনিউ চালু আছে, নিজে থেকে বাড়বে।" : " অটো-রিনিউ বন্ধ।"}`,
-                            `The subscription ends in ${sub.daysLeft} days (${fd(sub.endsAt)}).${sub.autoRenew ? " Auto-renew is on." : " Auto-renew is off."}`,
-                          )}
-                    </p>
-                    {me.role === "SUPER_ADMIN" && (
-                      <Link href="/settings?tab=subscription" className="ml-auto rounded-lg bg-surface px-3 py-1.5 text-sm font-semibold text-ink">
-                        {t("সাবস্ক্রিপশন দেখুন", "View subscription")}
-                      </Link>
-                    )}
-                  </div>
-                )}
-                {children}
-              </main>
             </div>
-          </div>
+            <nav className="mx-auto flex max-w-[1200px] gap-1 overflow-x-auto px-3 pb-2 lg:hidden" aria-label={t("মেনু", "Menu")}>
+              {navLinks}
+            </nav>
+          </header>
+
+          <main className="mx-auto w-full min-w-0 max-w-[1200px] px-4 py-6 sm:px-6 lg:py-8">
+            {showSubBanner && (
+              <div
+                className={`no-print mb-6 flex flex-wrap items-center gap-3 rounded-xl border p-4 ${
+                  sub.status === "EXPIRED" ? "border-crit/40 bg-crit-bg text-crit" : "border-warn/40 bg-warn-bg text-warn"
+                }`}
+                role="status"
+              >
+                <CalendarClock className="size-5 shrink-0" aria-hidden />
+                <p className="font-semibold">
+                  {sub.status === "EXPIRED"
+                    ? t(
+                        `সাবস্ক্রিপশনের মেয়াদ ${fd(sub.endsAt)} তারিখে শেষ হয়েছে। অন্যরা এখন কাজ করতে পারছেন না।`,
+                        `The subscription ended on ${fd(sub.endsAt)}. Others can't work until it is renewed.`,
+                      )
+                    : t(
+                        `সাবস্ক্রিপশন ${sub.daysLeft} দিন পর (${fd(sub.endsAt)}) শেষ হবে।${sub.autoRenew ? " অটো-রিনিউ চালু আছে।" : " অটো-রিনিউ বন্ধ।"}`,
+                        `The subscription ends in ${sub.daysLeft} days (${fd(sub.endsAt)}).${sub.autoRenew ? " Auto-renew is on." : " Auto-renew is off."}`,
+                      )}
+                </p>
+                {me.role === "SUPER_ADMIN" && (
+                  <Link href="/settings?tab=subscription" className="ml-auto rounded-lg bg-surface px-3 py-1.5 text-sm font-semibold text-ink">
+                    {t("সাবস্ক্রিপশন দেখুন", "View subscription")}
+                  </Link>
+                )}
+              </div>
+            )}
+            {children}
+          </main>
 
           <Link
             href="/jobs/new"
-            className="no-print fixed bottom-5 right-5 z-30 flex items-center gap-2 rounded-full bg-accent px-5 py-3 font-semibold text-accent-ink shadow-lg lg:hidden"
+            className="no-print fixed bottom-5 right-5 z-30 flex items-center gap-2 rounded-full bg-accent px-5 py-3 font-semibold text-accent-ink shadow-lg sm:hidden"
           >
             <Plus className="size-5" aria-hidden /> {t("নতুন জব", "New job")}
           </Link>

@@ -8,8 +8,8 @@ import { Balance, JobStatus } from "./status";
 import { nextStepLabel } from "./job-progress";
 import { useLang } from "@/lib/i18n";
 
-export const th = "whitespace-nowrap bg-sunk px-3 py-2.5 text-left text-[12.5px] font-semibold text-muted";
-export const td = "whitespace-nowrap border-t border-line px-3 py-2.5 align-middle";
+export const th = "whitespace-nowrap border-b border-line bg-sunk px-4 py-3 text-left text-[13px] font-semibold text-muted";
+export const td = "whitespace-nowrap border-t border-line px-4 py-3 align-middle";
 
 export function JobTable({ jobs, showImporter = true }: { jobs: Job[]; showImporter?: boolean }) {
   const router = useRouter();
@@ -22,7 +22,7 @@ export function JobTable({ jobs, showImporter = true }: { jobs: Job[]; showImpor
         <li key={j.id}>
           <Link
             href={`/jobs/${j.id}`}
-            className={`block rounded-xl border bg-surface p-4 shadow-[0_1px_2px_rgba(16,24,40,0.05)] ${j.flags.length ? "border-crit/50 border-l-4 border-l-crit" : "border-line"}`}
+            className={`block rounded-xl border bg-surface p-4 shadow-card ${j.flags.length ? "border-crit/50 border-l-4 border-l-crit" : "border-line"}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -47,8 +47,8 @@ export function JobTable({ jobs, showImporter = true }: { jobs: Job[]; showImpor
         </li>
       ))}
     </ul>
-    <div className="hidden overflow-x-auto rounded-xl border border-line bg-surface md:block">
-      <table className="w-full border-collapse text-sm">
+    <div className="hidden overflow-x-auto rounded-xl border border-line bg-surface shadow-card md:block">
+      <table className="w-full border-collapse text-[14.5px]">
         <thead>
           <tr>
             <th className={th}>{t("জব নং", "Job No")}</th>

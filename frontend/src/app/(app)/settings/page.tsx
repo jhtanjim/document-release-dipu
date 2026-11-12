@@ -282,7 +282,7 @@ function UsersTab() {
       {quota && (
         <Card className={`flex flex-wrap items-center gap-4 ${full ? "border-warn/50" : ""}`}>
           <div className="flex items-center gap-3">
-            <span className={`num grid size-14 place-items-center rounded-2xl text-xl font-bold ${full ? "bg-warn-bg text-warn" : "bg-accent-soft text-accent"}`}>
+            <span className={`num grid size-14 place-items-center rounded-xl text-xl font-bold ${full ? "bg-warn-bg text-warn" : "bg-accent-soft text-accent"}`}>
               {quota.used}/{quota.limit}
             </span>
             <div>
@@ -536,7 +536,7 @@ function SubscriptionTab() {
   return (
     <div className="flex flex-col gap-4">
       <Card className="flex flex-wrap items-center gap-5">
-        <span className={`grid size-16 place-items-center rounded-2xl ${tone.box}`}>
+        <span className={`grid size-16 place-items-center rounded-xl ${tone.box}`}>
           <CalendarClock className="size-8" aria-hidden />
         </span>
         <div className="min-w-0">
@@ -606,7 +606,7 @@ function SubscriptionTab() {
       <Card>
         <h2 className="mb-2 font-bold">{t("রিনিউয়ের ইতিহাস", "Renewal history")}</h2>
         {data.events?.length ? (
-          <ul className="divide-y divide-line text-sm">
+          <ul className="divide-y divide-line text-[14.5px]">
             {data.events.map((e) => (
               <li key={e.id} className="flex flex-wrap gap-x-3 py-2">
                 <Badge tone={e.type === "UPDATE" ? "neutral" : "good"}>{EVENT[e.type]}</Badge>

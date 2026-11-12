@@ -107,7 +107,7 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
         </div>
       </Card>
 
-      <details className="group rounded-2xl border border-line bg-surface shadow-card">
+      <details className="group rounded-xl border border-line bg-surface shadow-card">
         <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3.5 font-semibold sm:px-5">
           <Pencil className="size-4 text-accent" aria-hidden />
           {t("সব তথ্য এডিট করুন", "Edit all details")}
@@ -126,7 +126,7 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
         {job.history.length ? (
           <ol className="flex flex-col divide-y divide-line">
             {job.history.map((h) => (
-              <li key={h.id} className="py-2.5 text-sm">
+              <li key={h.id} className="py-2.5 text-[14.5px]">
                 <p>
                   <b>{h.user ?? t("অজানা", "Unknown")}</b>{" "}
                   <span className="text-muted">

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Hind_Siliguri, IBM_Plex_Mono } from "next/font/google";
+import { Anek_Bangla } from "next/font/google";
 import "./globals.css";
 import { LangProvider } from "@/lib/i18n";
 
-const bangla = Hind_Siliguri({
+// One family for Bangla, English and numbers: clear at small sizes, friendly at large ones.
+const anek = Anek_Bangla({
   subsets: ["bengali", "latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-bangla",
+  variable: "--font-anek",
 });
-const plex = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500"], variable: "--font-plex" });
 
 export const metadata: Metadata = {
   title: "গারান্টি রিলিজ · Guarantee Release",
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${bangla.variable} ${plex.variable} antialiased`}>
+      <body className={`${anek.variable} antialiased`}>
         <LangProvider>{children}</LangProvider>
       </body>
     </html>
